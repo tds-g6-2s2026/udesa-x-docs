@@ -1,0 +1,40 @@
+:root {
+  --udesa-dark-blue: #0d2547;
+}
+
+/* Left sidebar: logo box and table-of-contents box share the same color */
+.wy-nav-side {
+  background: var(--udesa-dark-blue);
+}
+
+.wy-side-nav-search {
+  background: var(--udesa-dark-blue);
+}
+
+.wy-side-nav-search input[type="text"] {
+  border-color: var(--udesa-dark-blue);
+}
+
+/* Top bar shown on narrow windows (mobile toggle) */
+.wy-nav-top {
+  background: var(--udesa-dark-blue);
+}
+
+.wy-nav-top img {
+  background-color: var(--udesa-dark-blue);
+}
+
+/* Horizontal logo banner used on the home page */
+.logo-banner {
+  background: var(--udesa-dark-blue);
+  text-align: center;
+  padding: 2rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.logo-banner img {
+  max-width: 360px;
+  width: 100%;
+  height: auto;
+}
