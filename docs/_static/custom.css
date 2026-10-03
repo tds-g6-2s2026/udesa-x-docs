@@ -38,3 +38,14 @@
   width: 100%;
   height: auto;
 }
+
+/* Tablas anchas (historias, requisitos): el texto de las celdas baja de línea en vez de cortarse */
+.wy-table-responsive table td,
+.wy-table-responsive table th {
+  white-space: normal;
+}
+
+/* Más ancho para que entren las tablas de historias y requisitos */
+.wy-nav-content {
+  max-width: 1200px;
+}
