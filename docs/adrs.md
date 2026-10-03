@@ -1,6 +1,8 @@
 # Registro de decisiones de arquitectura
 
-Cada archivo registra una decisión con su contexto, la decisión tomada, las alternativas y sus consecuencias (formato Michael Nygard).
+Cada ADR registra una decisión con su estado, fecha, alcance, contexto, decisión, alternativas y consecuencias, en el formato de Michael Nygard. Es el mismo formato de la plantilla [ADR-template_es-ES](https://github.com/pmerson/ADR-template/blob/master/ADR-template_es-ES.md): lo que esa plantilla llama "Justificación" acá está repartido entre "Contexto" y "Alternativas".
+
+Estas decisiones ya estaban tomadas e implementadas. Se registraron el 2 de octubre de 2026 a partir del código, las guías de cada repositorio y los pull requests. La fecha de cada una es la del primer cambio que la puso en práctica.
 
 | Número | Decisión | Fecha | Estado |
 |---|---|---|---|
