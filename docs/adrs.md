@@ -2,7 +2,7 @@
 
 Cada ADR registra una decisión con su estado, fecha, alcance, contexto, decisión, alternativas y consecuencias, en el formato de Michael Nygard. Es el mismo formato de la plantilla [ADR-template_es-ES](https://github.com/pmerson/ADR-template/blob/master/ADR-template_es-ES.md): lo que esa plantilla llama "Justificación" acá está repartido entre "Contexto" y "Alternativas".
 
-Estas decisiones ya estaban tomadas e implementadas. Se registraron el 2 de octubre de 2026 a partir del código, las guías de cada repositorio y los pull requests. La fecha de cada una es la del primer cambio que la puso en práctica.
+Los ADR-0001 a ADR-0014 registran decisiones que ya estaban tomadas e implementadas. Se documentaron el 2 de octubre de 2026 a partir del código, las guías de cada repositorio y los pull requests. Su fecha es la del primer cambio que las puso en práctica. Los ADRs posteriores indican su estado explícitamente; una propuesta no implica que la solución ya esté implementada.
 
 | Número | Decisión | Fecha | Estado |
 |---|---|---|---|
@@ -20,6 +20,7 @@ Estas decisiones ya estaban tomadas e implementadas. Se registraron el 2 de octu
 | {doc}`ADR-0012 <adr-0012>` | Despliegue en el cluster EKS compartido de la cátedra | 2026-10-02 | Aceptada |
 | {doc}`ADR-0013 <adr-0013>` | Testing con dependencias inyectadas, base real y mínimo de cobertura | 2026-09-04 | Aceptada |
 | {doc}`ADR-0014 <adr-0014>` | App mobile con Expo, TanStack Query y Zustand | 2026-08-25 | Aceptada |
+| {doc}`ADR-0015 <adr-0015>` | Agente único de backoffice con Bedrock, MCP y sanciones confirmadas | 2026-11-02 | Propuesta |
 
 ```{toctree}
 :maxdepth: 1
@@ -40,4 +41,5 @@ adr-0011
 adr-0012
 adr-0013
 adr-0014
+adr-0015
 ```
