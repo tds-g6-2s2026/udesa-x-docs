@@ -63,7 +63,7 @@ Desde el cluster se llega por el NAT.
 - **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos y tokens revocados.
 - **Gmail SMTP:** auth manda los mails de verificación y de recuperación de contraseña.
 - **Amazon S3:** pendiente. Es para las imágenes de media-service, que hoy las guarda en disco.
-- **Cola de eventos:** pendiente. auth publicaría el evento `user_deleted`, y posts y social lo consumirían.
+- **Cola de eventos:** un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, y social lo consume para borrar los follows de la cuenta.
 
 ### 5. Integración y despliegue continuos
 
@@ -75,7 +75,7 @@ Desde el cluster se llega por el NAT.
 ## Pendiente
 
 - La observabilidad: métricas, logs y trazas.
-- La cola de eventos y el almacenamiento en S3.
+- El almacenamiento en S3.
 - Al 2 de octubre de 2026, auth ya está desplegado en EKS y los demás servicios están en proceso.
 
 Las decisiones detrás de este diseño están en los [ADRs](adrs.md).
