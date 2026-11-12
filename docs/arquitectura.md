@@ -63,7 +63,7 @@ Desde el cluster se llega por el NAT.
 - **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos y tokens revocados.
 - **Gmail SMTP:** auth manda los mails de verificación y de recuperación de contraseña.
 - **Amazon S3:** pendiente. Es para las imágenes de media-service, que hoy las guarda en disco.
-- **Cola de eventos:** un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, y social lo consume para borrar los follows de la cuenta.
+- **Cola de eventos:** un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, y social lo consume para borrar los follows de la cuenta. {doc}`ADR-0017 <adr-0017>` suma los eventos de follows e interacciones, para un servicio de notificaciones.
 
 ### 5. Integración y despliegue continuos
 
