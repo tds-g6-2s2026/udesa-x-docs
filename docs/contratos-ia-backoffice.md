@@ -144,7 +144,7 @@ La autorización habilita una única operación idempotente. Reenviar la misma o
 
 Después de comprobar el efecto en auth, si se confirmó `resolve`, admin resuelve únicamente los `report_id` del snapshot confirmado y audita en su transacción local. Con `keep_open` conserva las denuncias pendientes y registra esa decisión. Denuncias nuevas o ajenas al alcance confirmado no se resuelven. Ante carrera posterior a la confirmación se mantiene su estado y se reconcilia la restricción de revisión que corresponda. El flujo reutiliza las reglas del módulo `reports`, extendiendo sus escrituras actuales por usuario para admitir el conjunto versionado.
 
-Resolver no levanta bloqueos ni suspensiones. Una advertencia no libera revisión por sí sola. El bloqueo actual limpia la revisión en auth, por lo que la implementación debe preservar/recalcular restricciones de casos pendientes al desbloquear o vencer suspensiones. Estas reglas se verifican junto con los fallos entre auth y la transacción de cierre/auditoría.
+Resolver no levanta bloqueos ni suspensiones. Una advertencia no libera revisión por sí sola. IA-08 conserva la revisión en auth al bloquear y sincroniza su versión según las denuncias pendientes al desbloquear o cerrar casos. Estas reglas se verifican junto con los fallos entre auth y la transacción de cierre/auditoría.
 
 ## Contrato HTTP con el portal
 
