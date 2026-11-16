@@ -95,7 +95,7 @@ Los antecedentes son evidencia histórica. La autorización de una sanción vuel
 
 ## evaluate_with_jev
 
-**Origen:** adaptador HTTPS a TypeSafe Jev. Se registra la evaluación mediante API de admin.
+MCP ejecuta la evaluación mediante Bedrock Converse. Admin prepara y guarda la evaluación por API. El nombre histórico `evaluate_with_jev` se conserva por compatibilidad, según la decisión de IA-06 del 16 de noviembre de 2026.
 
 **Entrada:** `{ user_id: uuid, post_evidence_ids: uuid[], history_evidence_id: uuid|null, policy_version: string }`.
 
@@ -110,7 +110,27 @@ El backend carga snapshots existentes, comprueba usuario, permisos y ejecución,
 | `score` | Número entre 0 y 1, o `null` si el contrato real no lo entrega. |
 | `confidence` | Número entre 0 y 1, o `null` si no está disponible. |
 
-`outcome` es `no_violation_detected`, `review_required` o `violation_detected`. Describe la evaluación y no autoriza una sanción. El adaptador normaliza la respuesta real de Jev tras la prueba de IA-01, sin inventar campos ni puntuaciones que el proveedor no entregue. Las categorías y umbrales necesitan evaluación con contenido en español. El texto explicativo del agente cita los hallazgos y posts verificables.
+`outcome` admite `no_violation_detected`, `review_required` o `violation_detected`. Es un resultado consultivo que conserva referencias verificadas. `score` y `confidence` se guardan en `null` porque la salida elegida es categórica. La política inicial `moderation-es-v1` define `spam`, `acoso`, `contenido_inapropiado` y `suplantacion`. La ejecución real inicial del corpus ficticio en español produjo doce respuestas válidas y nueve coincidencias con las expectativas, con tres desacuerdos registrados para revisión. La clasificación y los desacuerdos requieren revisión humana.
+
+### Preparación, inferencia y persistencia de IA-06
+
+| Llamada | Parámetros y autorización |
+|---|---|
+| MCP → `POST /internal/ai/runs/{id}/evaluations/prepare` en Admin | Entrada de la tool. JWT `aud=admin-service`, `sub=udesa-mcp`, scope `evaluations:prepare`, ligado a administrador, conversación y ejecución. |
+| MCP → Bedrock `Converse` | Política versionada, lista de `{post_id,text}` y JSON Schema. Credenciales temporales AWS del servicio MCP, región y application inference profile configurados. |
+| MCP → `POST /internal/ai/runs/{id}/evaluations/complete` en Admin | `evaluation_id`, perfil en `model_version`, decisiones, marca de contexto incompleto, error tipado, tokens disponibles, duración e intentos. JWT con `evaluations:complete`. |
+| Navegador → `GET /admin/ai/evaluations/{id}` | Sesión administrativa del propietario. Resultado y metadatos persistidos. El gateway agrega el prefijo `/api`. |
+| Navegador → `GET /admin/ai/runs/{id}/evaluations` | Misma autorización. Lista acotada por ejecución. El polling conserva la expiración de sesión existente. |
+
+Admin exige una ejecución activa y selección humana del usuario, autorización de la tool persistida y snapshots del mismo usuario y ejecución. Admite hasta veinte snapshots de publicaciones y un snapshot opcional de antecedentes como procedencia. El contexto externo incluye hasta veinte posts únicos, mil caracteres por post y doce mil caracteres totales. El historial y los datos administrativos quedan guardados en Admin. Texto vacío, versiones de un mismo post con contenido diferente o recortes se marcan como contexto incompleto. Una muestra sin texto disponible produce `insufficient_evidence`.
+
+El modelo devuelve `{decisions:[{post_id,verdict,categories}],context_incomplete}`. `verdict` admite `clear`, `violation` o `uncertain`. Admin comprueba cobertura exacta, UUIDs únicos y categorías conocidas. `clear` requiere categorías vacías y `violation` requiere al menos una. `uncertain`, suplantación, contexto incompleto y errores del proveedor producen `review_required`. Solo las categorías con `violation` generan hallazgos. Una respuesta inválida se registra como fallo del evaluador y deriva a revisión humana.
+
+Admin persiste la entrada canónica, el contexto, el perfil, deadlines y el resultado inmutable mediante la migración Goose 15. El mismo conjunto de referencias y política dentro de una ejecución produce una única evaluación. Una repetición devuelve el resultado guardado o el estado en curso. Cada ejecución admite dos evaluaciones. Una finalización idéntica devuelve el resultado existente y una finalización diferente produce `409`. El borrado por retención de la conversación elimina estas evaluaciones junto con sus ejecuciones.
+
+El deadline de evaluación es veinte segundos, acotado por el deadline de la ejecución. MCP reserva tres segundos para el callback y limita la espera de inferencia a quince segundos, la salida a 1024 tokens y la concurrencia a dos llamadas por instancia por defecto. El SDK realiza un intento y permite un segundo solo ante `ThrottlingException`. Los timeouts conservan revisión humana. Las tareas SDK que continúan tras el timeout mantienen ocupado su cupo hasta terminar. Admin recupera deadlines vencidos al mantener o consultar las ejecuciones. El agente dispone de hasta treinta segundos para esta tool.
+
+`model_version` identifica el application inference profile configurado. La trazabilidad adicional conserva versión de política, decisiones validadas, error, uso de tokens disponible e intentos. Cero intentos representa ausencia de una invocación confirmada, por ejemplo al vencer la espera mientras el thread del SDK sigue en curso. La medición de calidad se realiza con el corpus y comando de `udesa-mcp/devtools/evaluate_spanish.py`. Los reportes de ese comando deben acompañar la revisión de la política y del perfil.
 
 ## propose_sanction
 
@@ -118,7 +138,7 @@ El backend carga snapshots existentes, comprueba usuario, permisos y ejecución,
 
 **Entrada:** `{ user_id: uuid, sanction_type: string, duration_seconds: integer|null, reason: string, evidence_ids: uuid[], evaluation_id: uuid|null, case_snapshot_id: uuid|null, case_version: integer|null, case_disposition: "keep_open"|"resolve" }`.
 
-`sanction_type` es `warning`, `suspension` o `block`. Una suspensión requiere duración positiva dentro del rango configurado; advertencia y bloqueo usan `null`. Una solicitud humana directa puede no tener evaluación de Jev, pero debe cumplir la política de evidencia y las reglas determinísticas de admin. Falta de evidencia suficiente no habilita la ejecución de una sanción.
+`sanction_type` es `warning`, `suspension` o `block`. Una suspensión requiere duración positiva dentro del rango configurado y las otras acciones usan `null`. Una solicitud humana directa puede tener `evaluation_id=null` y debe cumplir la política de evidencia y las reglas determinísticas de Admin.
 
 **Salida:** `{ proposal_id: uuid, version: integer, user_id: uuid, user_label: string, sanction_type: string, duration_seconds: integer|null, reason: string, evidence_ids: uuid[], evaluation_id: uuid|null, policy_version: string, case_snapshot_id: uuid|null, case_version: integer|null, case_disposition: "keep_open"|"resolve", status: "pending", expires_at: datetime }`.
 
@@ -128,7 +148,7 @@ Un snapshot debe pertenecer al mismo usuario y su alcance se muestra en el modal
 
 ## Confirmación y ejecución administrativa (fuera de MCP)
 
-**Recorrido:** portal -> gateway -> API de admin -> servicio de dominio de admin -> auth cuando corresponde. Agente, MCP, Bedrock y Jev no participan en este recorrido y no reciben sus credenciales.
+El recorrido de ejecución es portal → gateway → API de Admin → servicio de dominio de Admin → Auth cuando corresponde. Admin conserva las credenciales de ejecución y la autorización humana.
 
 **Entrada de confirmación:** `{ proposal_id: uuid, version: integer, case_disposition: "keep_open"|"resolve" }`, con cookie administrativa vigente y CSRF. La disposición debe coincidir con la propuesta canónica, no modifica su alcance; un cambio requiere nueva propuesta. No se exige `run_id` activo.
 
