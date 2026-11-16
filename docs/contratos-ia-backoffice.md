@@ -170,3 +170,16 @@ Estados de propuesta: `pending`, `approved`, `executing`, `succeeded`, `partial`
 - Con agente/MCP detenidos, una propuesta persistida y vigente puede confirmarse y ejecutarse desde admin; el polling del chat no participa.
 - Un caso cambiado antes de confirmar se rechaza; dos confirmaciones concurrentes no duplican la sanción. Una denuncia recibida después no se cierra con el snapshot anterior.
 - Si auth aplica la sanción y falla la resolución o auditoría, la operación informa resultado parcial y el reintento completa solo lo pendiente, sin sancionar otra vez ni liberar restricciones ajenas.
+
+
+## Adición IA-08 · Resultado de operaciones de sanción
+
+El backend de Auth registra por `operation_id` usuario, actor, acción, motivo, duración y resultado. Sus APIs son `POST /internal/users/{id}/sanctions` y `GET /internal/sanction-operations/{operation_id}`, reservadas a la identidad de moderación de Admin.
+
+El resultado incluye `operation_id`, `user_id`, `actor_id`, `action`, `status`, `created_at`, `applied_at`, `suspended_until` y `error_code`. Estados de efecto: `applied`, `failed`, `sending`, `unknown`, `simulated`; Admin agrega `pending` mientras solo existe la intención. La auditoría se controla por separado. Una operación repetida conserva resultado y fecha de fin; reutilizar su UUID con otro contenido se rechaza.
+
+Suspensión exige `duration_seconds` igual a 3600, 86400, 604800 o 2592000. Advertencia y bloqueo omiten duración. Una suspensión vigente rechaza otra operación nueva. El estado administrativo agrega `suspendido`, fecha de fin y revisión independiente. Las entradas de `get_user_history` agregan `status` opcional para distinguir intenciones y resultados. Las entradas históricas existentes pueden omitirlo.
+
+La advertencia se envía por SMTP al email canónico de Auth. La aceptación de SMTP no demuestra lectura o entrega final. Un resultado incierto no se reenvía automáticamente. El proveedor de logs de desarrollo devuelve `simulated`.
+
+El JWT de Admin→Auth usa una clave RS256 exclusiva de moderación y audiencia `auth-service:moderation`, con actor, usuario, operación, permiso exacto, `iat`, `exp` de hasta 60 segundos y `jti`. La recepción Social→Admin exige una credencial independiente. Las confirmaciones públicas y propuestas permanecen en IA-09/10.
