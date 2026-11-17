@@ -183,3 +183,18 @@ Suspensión exige `duration_seconds` igual a 3600, 86400, 604800 o 2592000. Adve
 La advertencia se envía por SMTP al email canónico de Auth. La aceptación de SMTP no demuestra lectura o entrega final. Un resultado incierto no se reenvía automáticamente. El proveedor de logs de desarrollo devuelve `simulated`.
 
 El JWT de Admin→Auth usa una clave RS256 exclusiva de moderación y audiencia `auth-service:moderation`, con actor, usuario, operación, permiso exacto, `iat`, `exp` de hasta 60 segundos y `jti`. La recepción Social→Admin exige una credencial independiente. Las confirmaciones públicas y propuestas permanecen en IA-09/10.
+
+
+## Recuperación y despliegue coordinado de IA-08
+
+El listado administrativo de denuncias incluye `sync_pending=true` cuando falta completar
+la sincronización de revisión en Auth. El caso permanece visible aunque ya se haya guardado
+el cierre de sus denuncias. `POST /admin/reports/{id}/retry` exige sesión administrativa y CSRF,
+y completa la operación y versión pendientes. El resultado del panel se actualiza al consultar
+nuevamente el listado.
+
+La activación del despliegue se controla con `MODERATION_ROLLOUT_ENABLED=true` en Auth,
+Admin y Social. Preparar antes los Secrets de GitHub `MODERATION_PRIVATE_KEY_PEM_B64` en Admin,
+`MODERATION_PUBLIC_KEY_PEM_B64` en Auth y `REPORTS_SERVICE_TOKEN` en Admin y Social. Los pipelines
+renderizan y montan las claves durante el rollout coordinado de IA-12 y validan la configuración
+antes de publicar imágenes. El valor inicial vacío deja el despliegue pendiente.
