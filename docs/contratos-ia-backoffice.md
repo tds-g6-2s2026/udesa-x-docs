@@ -144,7 +144,7 @@ La autorización habilita una única operación idempotente. Reenviar la misma o
 
 Después de comprobar el efecto en auth, si se confirmó `resolve`, admin resuelve únicamente los `report_id` del snapshot confirmado y audita en su transacción local. Con `keep_open` conserva las denuncias pendientes y registra esa decisión. Denuncias nuevas o ajenas al alcance confirmado no se resuelven. Ante carrera posterior a la confirmación se mantiene su estado y se reconcilia la restricción de revisión que corresponda. El flujo reutiliza las reglas del módulo `reports`, extendiendo sus escrituras actuales por usuario para admitir el conjunto versionado.
 
-Resolver no levanta bloqueos ni suspensiones. Una advertencia no libera revisión por sí sola. El bloqueo actual limpia la revisión en auth, por lo que la implementación debe preservar/recalcular restricciones de casos pendientes al desbloquear o vencer suspensiones. Estas reglas se verifican junto con los fallos entre auth y la transacción de cierre/auditoría.
+Resolver no levanta bloqueos ni suspensiones. Una advertencia no libera revisión por sí sola. IA-08 conserva la revisión en auth al bloquear y sincroniza su versión según las denuncias pendientes al desbloquear o cerrar casos. Estas reglas se verifican junto con los fallos entre auth y la transacción de cierre/auditoría.
 
 ## Contrato HTTP con el portal
 
@@ -170,3 +170,31 @@ Estados de propuesta: `pending`, `approved`, `executing`, `succeeded`, `partial`
 - Con agente/MCP detenidos, una propuesta persistida y vigente puede confirmarse y ejecutarse desde admin; el polling del chat no participa.
 - Un caso cambiado antes de confirmar se rechaza; dos confirmaciones concurrentes no duplican la sanción. Una denuncia recibida después no se cierra con el snapshot anterior.
 - Si auth aplica la sanción y falla la resolución o auditoría, la operación informa resultado parcial y el reintento completa solo lo pendiente, sin sancionar otra vez ni liberar restricciones ajenas.
+
+
+## Adición IA-08 · Resultado de operaciones de sanción
+
+El backend de Auth registra por `operation_id` usuario, actor, acción, motivo, duración y resultado. Sus APIs son `POST /internal/users/{id}/sanctions` y `GET /internal/sanction-operations/{operation_id}`, reservadas a la identidad de moderación de Admin.
+
+El resultado incluye `operation_id`, `user_id`, `actor_id`, `action`, `status`, `created_at`, `applied_at`, `suspended_until` y `error_code`. Estados de efecto: `applied`, `failed`, `sending`, `unknown`, `simulated`; Admin agrega `pending` mientras solo existe la intención. La auditoría se controla por separado. Una operación repetida conserva resultado y fecha de fin; reutilizar su UUID con otro contenido se rechaza.
+
+Suspensión exige `duration_seconds` igual a 3600, 86400, 604800 o 2592000. Advertencia y bloqueo omiten duración. Una suspensión vigente rechaza otra operación nueva. El estado administrativo agrega `suspendido`, fecha de fin y revisión independiente. Las entradas de `get_user_history` agregan `status` opcional para distinguir intenciones y resultados. Las entradas históricas existentes pueden omitirlo.
+
+La advertencia se envía por SMTP al email canónico de Auth. La aceptación de SMTP no demuestra lectura o entrega final. Un resultado incierto no se reenvía automáticamente. El proveedor de logs de desarrollo devuelve `simulated`.
+
+El JWT de Admin→Auth usa una clave RS256 exclusiva de moderación y audiencia `auth-service:moderation`, con actor, usuario, operación, permiso exacto, `iat`, `exp` de hasta 60 segundos y `jti`. La recepción Social→Admin exige una credencial independiente. Las confirmaciones públicas y propuestas permanecen en IA-09/10.
+
+
+## Recuperación y despliegue coordinado de IA-08
+
+El listado administrativo de denuncias incluye `sync_pending=true` cuando falta completar
+la sincronización de revisión en Auth. El caso permanece visible aunque ya se haya guardado
+el cierre de sus denuncias. `POST /admin/reports/{id}/retry` exige sesión administrativa y CSRF,
+y completa la operación y versión pendientes. El resultado del panel se actualiza al consultar
+nuevamente el listado.
+
+La activación del despliegue se controla con `MODERATION_ROLLOUT_ENABLED=true` en Auth,
+Admin y Social. Preparar antes los Secrets de GitHub `MODERATION_PRIVATE_KEY_PEM_B64` en Admin,
+`MODERATION_PUBLIC_KEY_PEM_B64` en Auth y `REPORTS_SERVICE_TOKEN` en Admin y Social. Los pipelines
+renderizan y montan las claves durante el rollout coordinado de IA-12 y validan la configuración
+antes de publicar imágenes. El valor inicial vacío deja el despliegue pendiente.
