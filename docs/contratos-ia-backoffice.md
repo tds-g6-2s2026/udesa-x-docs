@@ -144,7 +144,7 @@ El deadline de evaluación es veinte segundos, acotado por el deadline de la eje
 
 `sanction_type` es `warning`, `suspension` o `block`. Una suspensión requiere duración positiva dentro del rango configurado y las otras acciones usan `null`. Una solicitud humana directa puede tener `evaluation_id=null` y debe cumplir la política de evidencia y las reglas determinísticas de Admin.
 
-**Salida:** `{ proposal_id: uuid, version: integer, user_id: uuid, user_label: string, sanction_type: string, duration_seconds: integer|null, reason: string, evidence_ids: uuid[], evaluation_id: uuid|null, policy_version: string, case_snapshot_id: uuid|null, case_version: integer|null, case_disposition: "keep_open"|"resolve", status: "pending", expires_at: datetime }`.
+**Salida:** `{ proposal_id: uuid, version: integer, user_id: uuid, user_label: string, sanction_type: string, duration_seconds: integer|null, reason: string, evidence_ids: uuid[], evaluation_id: uuid|null, policy_version: string, proposal_policy_version: string, case_snapshot_id: uuid|null, case_version: integer|null, case_disposition: "keep_open"|"resolve", status: "pending"|"cancelled"|"expired", expires_at: datetime }`.
 
 El backend agrega autor y conversación desde el contexto autenticado y guarda la propuesta canónica. Los datos sensibles quedan inmutables. Cambiarlos crea otra propuesta y requiere una confirmación nueva. Esta tool solo registra la propuesta: no altera el acceso del usuario.
 
@@ -222,3 +222,40 @@ Admin y Social. Preparar antes los Secrets de GitHub `MODERATION_PRIVATE_KEY_PEM
 `MODERATION_PUBLIC_KEY_PEM_B64` en Auth y `REPORTS_SERVICE_TOKEN` en Admin y Social. Los pipelines
 renderizan y montan las claves durante el rollout coordinado de IA-12 y validan la configuración
 antes de publicar imágenes. El valor inicial vacío deja el despliegue pendiente.
+
+
+## APIs implementadas de IA-09
+
+| Método y ruta en Admin | Contrato |
+|---|---|
+| `POST /internal/ai/runs/{id}/proposals` | Entrada de `propose_sanction`, JWT de MCP con `proposals:create`, ligado a administrador, conversación, ejecución y usuario seleccionado. |
+| `GET /admin/ai/proposals/{id}` | Documento canónico y estado actual, con sesión del propietario. |
+| `GET /admin/ai/runs/{id}/proposals` | Propuestas persistidas de la ejecución, incluyendo runs fallidos. |
+| `POST /admin/ai/proposals/{id}/cancel` | Cuerpo `{}`, sesión vigente y CSRF. Cancelación idempotente. |
+
+El gateway agrega `/api` a las rutas administrativas. Las lecturas usan
+`Cache-Control: no-store` y conservan la expiración de sesión por inactividad.
+La consulta y cancelación operan después de terminar la ejecución del agente.
+
+La respuesta incorpora `proposal_policy_version=sanctions-proposal-v1`. Los
+reintentos idénticos devuelven el documento original con su estado actual, incluidos
+`cancelled` y `expired`. Una propuesta nueva usa versión 1 y un UUID nuevo. La vigencia
+es quince minutos, acotada por la conversación, con hasta cien propuestas por run.
+
+Admin exige al menos un snapshot de publicaciones con texto y verifica referencias
+del mismo usuario y ejecución. Si se referencia una evaluación, debe estar completada
+y todas sus evidencias deben estar incluidas. Conserva su política de moderación.
+El camino humano directo con evaluación nula usa `policy_version=manual-review-v1`.
+Las dos variantes conservan la confirmación humana de IA-10 como siguiente paso.
+
+Los snapshots de denuncias contienen el conjunto completo de UUIDs pendientes. La
+versión aumenta ante cambios reales del conjunto, y Admin rechaza un snapshot
+ajeno o desactualizado al proponer. El contador `pending_count` asociado al snapshot
+corresponde a ese conjunto congelado. La página de antecedentes conserva su propia
+cobertura limitada. IA-10 volverá a validar el snapshot y la versión al confirmar.
+
+El resultado de una ejecución puede incluir `proposal_ids`. El agente los obtiene
+de las respuestas de la herramienta. Admin comprueba su pertenencia al run antes
+de guardar el resultado. Los resultados anteriores que solo contienen `message`
+siguen siendo válidos. El listado por run permite recuperar propuestas si falla la
+respuesta del agente después de guardarlas.
