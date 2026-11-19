@@ -254,6 +254,36 @@ ajeno o desactualizado al proponer. El contador `pending_count` asociado al snap
 corresponde a ese conjunto congelado. La página de antecedentes conserva su propia
 cobertura limitada. IA-10 volverá a validar el snapshot y la versión al confirmar.
 
+## API de confirmación de IA-10
+
+| Ruta del portal | Pedido y respuesta |
+|---|---|
+| `POST /api/admin/ai/proposals/{id}/confirm` | `version` y `confirm_case_resolution: true` cuando el alcance aprobado es `resolve`. Devuelve la operación persistida. |
+| `GET /api/admin/ai/sanction-operations/{id}` | Devuelve el estado de la operación al administrador que confirmó, sin renovar su sesión. |
+| `POST /api/admin/ai/sanction-operations/{id}/retry` | `{}`. Reconcilia el efecto y completa pasos pendientes sobre el mismo identificador. |
+
+Admin valida sesión vigente, rol `moderator` o `superadmin`, CSRF en escrituras, propiedad,
+versión, expiración, cuenta, evidencia y snapshot de denuncias. El UUID de la propuesta
+identifica la operación y el registro de autorización de un solo uso. El cuerpo de
+confirmación solo confirma el documento. Doble clic devuelve el estado guardado.
+Una propuesta confirmada incluye `operation_id` en sus consultas.
+
+La operación puede estar `pending`, `unknown`, `failed`, `simulated`, `partial` o
+`applied`. `effect_status` muestra el estado registrado para Auth y `pending_steps`
+señala qué falta. Las escrituras responden `202` cuando la operación está pendiente, y
+`200` cuando devuelven un resultado conocido o incierto. La lectura responde `200` al
+devolver el estado disponible. El portal puede mostrar la fecha de vencimiento real de
+una suspensión a partir de `suspended_until`. Una advertencia `applied` acredita
+aceptación SMTP. Si el envío quedó incierto, el reintento consulta la operación y
+conserva ese estado sin reenviar.
+
+Admin conserva confirmación, intentos y resultado de forma correlacionada, incluso
+después de la limpieza de la conversación. Ante pérdida de respuesta de Auth, consulta
+ese UUID antes de reintentar. Para `resolve`, las denuncias nuevas quedan pendientes y el
+cierre autorizado solo modifica los IDs guardados. Con pasos administrativos pendientes
+tras un efecto aplicado, Admin devuelve `partial` y ofrece reintento explícito desde el
+portal. El frontend y el modal se implementan en IA-11.
+
 El resultado de una ejecución puede incluir `proposal_ids`. El agente los obtiene
 de las respuestas de la herramienta. Admin comprueba su pertenencia al run antes
 de guardar el resultado. Los resultados anteriores que solo contienen `message`
