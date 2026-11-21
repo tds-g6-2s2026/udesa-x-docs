@@ -5,77 +5,103 @@
 :width: 100%
 ```
 
-UdeSA-X está armado con microservicios separados por responsabilidad, y cada uno tiene su propia base. La app habla solo con el gateway. Los servicios se llaman entre sí por HTTP dentro del cluster.
+Estado de `main` al 21 de noviembre de 2026. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR.
+
+UdeSA-X está armado con microservicios separados por responsabilidad, y cada uno tiene su propia base. La app habla solo con el gateway. Los servicios se llaman entre sí por HTTP dentro del cluster. El backoffice suma un asistente de IA: un agente y un servidor MCP que usan Amazon Bedrock.
 
 ## Contexto
 
 | Elemento | Tipo | Relación con UdeSA-X |
 |---|---|---|
-| Usuario de la app | Persona | Usa la app mobile para publicar, seguir y leer su feed. |
-| Administrador | Persona | Usa el backoffice web para gestionar administradores. |
-| Gmail | Sistema externo | Envía los mails de verificación y de recuperación de contraseña. |
-| AWS | Sistema externo | Aloja la plataforma: CloudFront, el balanceador, el cluster EKS y las imágenes en ECR. |
+| Usuario de la app | Persona | Usa la app mobile para publicar, seguir, leer su feed y recibir notificaciones. |
+| Administrador | Persona | Usa el backoffice web para moderar cuentas, ver métricas y consultar al asistente de IA. |
+| Gmail | Sistema externo | Envía los mails de verificación, de recuperación de contraseña y de advertencias de moderación, los avisos a soporte y las alertas de servicios caídos. |
+| AWS | Sistema externo | Aloja la plataforma: CloudFront, el balanceador, el cluster EKS, las imágenes en ECR, los archivos en S3 y el modelo de Amazon Bedrock. La cola de eventos en SNS y SQS está pendiente. |
+| Firebase Cloud Messaging | Sistema externo | Entrega las notificaciones push en Android. **Pendiente:** lo usa notifications-service, que todavía no está desplegado. |
+| Grafana Cloud | Sistema externo | Recibe las trazas, métricas y logs de los servicios por OpenTelemetry. |
+| Langfuse | Sistema externo | Recibe las trazas del agente de IA, solo con metadatos. |
 | GitHub | Sistema externo | Guarda el código y corre la integración y el despliegue continuos. |
 
 ## Capas
 
 ### 1. Clientes
 
-- **App mobile:** React Native con Expo y TypeScript. Usa TanStack Query y Zustand, y guarda el token cifrado en SecureStore.
-- **Backoffice web:** se usa desde el navegador del administrador. El portal lo sirve admin-service.
+- **App mobile:** React Native con Expo y TypeScript. Usa TanStack Query y Zustand, y guarda el token cifrado en SecureStore. Registra el token de Firebase para el push en Android (mobile #32) y tiene la campanita de notificaciones (mobile #31). La app no tiene despliegue continuo.
+- **Backoffice web:** se usa desde el navegador del administrador. El código está en admin-service; se publica como sitio estático en S3 y lo sirve CloudFront. Llama a la API de admin en `/api/admin`.
 
 ### 2. Borde de AWS
 
-- **CloudFront:** recibe el tráfico por HTTPS con el dominio del grupo. Las rutas `/api/*` van al ALB.
+- **CloudFront:** recibe el tráfico por HTTPS con el dominio del grupo. Las rutas `/api/*` van al ALB. Desde S3 sirve el backoffice estático y los archivos de media-service, en `/media`.
 - **ALB compartido:** es el balanceador de la cátedra, en el IngressGroup `tds-shared`. Manda `/api` al api-gateway.
 
 ### 3. Cluster EKS
 
-Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un pod por servicio, con estrategia Recreate y una cuota de 8 pods. Cada servicio es una imagen Docker.
+Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un pod por servicio, con estrategia Recreate. Cada servicio es una imagen Docker. La cuota del namespace es de 8 pods y hoy corren 8 servicios.
 
 | Servicio | Puerto | Lenguaje | Qué hace | Rutas que recibe del gateway | Datos |
 |---|---|---|---|---|---|
-| api-gateway | 8080 | Python, FastAPI | Rutea por la primera palabra de la ruta, verifica el token con auth y lo guarda 30 segundos, y agrega `X-User-Id`. | Todo lo que llega a `/api` | Ninguno |
-| auth-service | 8000 | Python | Identidad y sesión: registro, login, perfil y baja. | `/auth` | PostgreSQL y Redis |
-| posts-service | 8001 | Python | Contenido y feed: posts, likes, retweets y hashtags. | `/posts` | PostgreSQL y Redis |
-| social-service | 8002 | Python | Grafo social: follows, solicitudes y sugerencias. | `/follows`, `/follow-requests`, `/users` | PostgreSQL y Redis |
-| media-service | 8003 | Python | Archivos: subida de imágenes. | `/media`, `/files` | Ninguno por ahora |
-| admin-service | 8004 | Go | Backoffice: administradores y portal web. | `/admin` | PostgreSQL |
+| api-gateway | 8080 | Python, FastAPI | Rutea por la primera palabra de la ruta. Verifica el token con auth y guarda el resultado hasta 5 minutos, pero en cada pedido consulta en Redis si la sesión fue revocada. Agrega `X-User-Id` y anota a cada usuario activo para la vista Métricas. | Todo lo que llega a `/api` | Redis |
+| auth-service | 8000 | Python | Identidad y cuenta: registro, login, perfil, fotos, preferencias, onboarding, baja, feedback, sanciones y estadísticas internas. | `/auth` | PostgreSQL y Redis |
+| posts-service | 8001 | Python | Contenido y feed: posts, respuestas, citas, likes, retweets, guardados, hashtags, tendencias y búsqueda. | `/posts` | PostgreSQL y Redis |
+| social-service | 8002 | Python | Grafo social: follows, solicitudes, sugerencias, seguidores y seguidos, y denuncias. | `/follows`, `/follow-requests`, `/users` | PostgreSQL y Redis |
+| media-service | 8003 | Python | Archivos: imágenes de los posts, fotos de perfil y portadas. | `/media`, `/files` | PostgreSQL y S3 |
+| admin-service | 8004 | Go | Backoffice: administradores, usuarios, denuncias, auditoría, feedback, métricas, monitor de servicios, sanciones y conversaciones con el asistente. | `/admin`, `/backoffice` | PostgreSQL |
+| backoffice-agent | 8005 | Python | Agente de IA: resuelve las consultas del asistente con Amazon Bedrock y las herramientas del MCP. | Ninguna | Ninguno |
+| udesa-mcp | 8006 | Python | Servidor MCP: herramientas de evidencia, estado de los servicios, evaluación con Bedrock y propuestas de sanción. | Ninguna | Ninguno |
+| notifications-service | — | Python | **Pendiente de deploy** (notifications #1): campanita, tokens de Firebase y push. | `/notifications` (**pendiente:** gateway #9) | PostgreSQL |
 
-Los puertos son los de cada Service de Kubernetes. Adentro del contenedor, los servicios Python escuchan en el 8000. Las rutas `auth` y `admin` pasan sin que el gateway verifique el token, porque esos servicios manejan su propia autenticación.
+Los puertos son los de cada Service de Kubernetes. Adentro del contenedor, los servicios Python escuchan en el 8000, salvo el agente y el MCP. Las rutas de auth y de admin pasan sin que el gateway verifique el token, porque esos servicios manejan su propia autenticación. El agente y el MCP no tienen rutas públicas y solo aceptan un token interno firmado por admin-service.
 
 ### Llamadas entre servicios
 
-Todas son pedidos HTTP sincrónicos.
+Todas son pedidos HTTP sincrónicos dentro del cluster. Los números son los del diagrama.
 
 | Número | Llamada | Para qué |
 |---|---|---|
 | 1 | posts → auth | Pedir los datos de los autores, en lote. |
 | 2 | posts → social | Saber a quién sigue el usuario. |
-| 3 | social → auth | Saber si la cuenta es pública. |
-| G | gateway → auth | Verificar el token; la respuesta se guarda 30 segundos. |
+| 3 | posts → media | Validar que las imágenes de un post sean del autor. |
+| 4 | social → auth | Saber si la cuenta es pública y pedir datos de usuarios en lote. |
+| 5 | social → admin | Entregar las denuncias, con un token de servicio. |
+| 6 | auth → media | Validar la foto de perfil o la portada nueva y borrar la anterior. |
+| 7 | auth → admin | Entregar el feedback que mandan los usuarios. |
+| 8 | admin → auth, posts y social | Buscador y detalle de usuarios, bloqueos, sanciones, estadísticas y evidencia de publicaciones. |
+| 9 | admin ⇄ backoffice-agent | admin le pasa al agente una consulta del asistente; el agente toma la ejecución y guarda el resultado en admin. |
+| 10 | backoffice-agent → udesa-mcp | Usar las herramientas del asistente. |
+| 11 | udesa-mcp → admin | Leer la evidencia y guardar las propuestas de sanción, siempre a través de admin. |
+| G | gateway → auth | Verificar el token. |
+| M | admin → todos | Monitor: consulta el `/healthcheck` de cada servicio y avisa por mail si alguno cae. |
+
+Además, el gateway y auth comparten dos datos en Redis: auth publica las revocaciones de sesión que lee el gateway, y el gateway anota los usuarios en línea que auth cuenta para Métricas.
 
 ### 4. Fuera del cluster
 
 Desde el cluster se llega por el NAT.
 
-- **PostgreSQL:** una base por servicio: auth, posts, social y admin. No hay claves foráneas entre bases.
-- **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos y tokens revocados.
-- **Gmail SMTP:** auth manda los mails de verificación y de recuperación de contraseña.
-- **Amazon S3:** pendiente. Es para las imágenes de media-service, que hoy las guarda en disco.
-- **Cola de eventos:** un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted` y `post_replied`. La baja de cuenta llega a cuatro servicios: social borra los follows de la cuenta, posts muestra sus respuestas y los retweets de sus posts como "[Usuario eliminado]", media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
+- **PostgreSQL:** una base por servicio: auth, posts, social, media y admin. notifications tendrá la suya. No hay claves foráneas entre bases.
+- **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos, tokens revocados y el ranking de tendencias, y la lista de usuarios en línea del gateway.
+- **Gmail SMTP:** auth manda los mails de verificación, de recuperación de contraseña y las advertencias de moderación. admin manda los avisos a soporte por cada feedback y las alertas de servicios caídos.
+- **Amazon S3:** guarda los archivos de media-service. El pod accede con IRSA, sin claves en el código, y CloudFront sirve los archivos.
+- **Amazon Bedrock:** modelo del agente y evaluador del MCP, en us-east-2. Los dos pods usan un rol de IAM por IRSA.
+- **Firebase Cloud Messaging:** **pendiente**. notifications-service manda los push con la API HTTP v1 de FCM; la app ya registra el token del celular.
+- **Grafana Cloud:** recibe por OTLP las trazas, métricas y logs de api-gateway, auth, posts, social, media y admin.
+- **Langfuse:** recibe las trazas del agente con el modelo, los tokens, la duración y las herramientas usadas, nunca el texto del chat. Falta confirmar que esté activo en EKS (ver Pendiente).
+- **Cola de eventos:** **pendiente**. Un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted` y `post_replied`. La baja de cuenta llega a cuatro servicios: social borra los follows de la cuenta, posts muestra sus respuestas y los retweets de sus posts como "[Usuario eliminado]", media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
 
 ### 5. Integración y despliegue continuos
 
-1. **GitHub:** 7 repositorios, uno por servicio más la app.
-2. **GitHub Actions, CI:** en cada pull request corre Ruff, los tests unitarios y de integración, y exige cobertura de 85% o más.
-3. **GitHub Actions, CD:** en cada merge a main asume un rol de AWS por OIDC, construye la imagen, la sube a ECR, aplica los manifiestos con kubectl y espera el rollout.
+1. **GitHub:** un repositorio por servicio (nueve) y otro para la app, más `load-tests` (pruebas de carga), `udesa-x-docs` (esta documentación) y `udesa-x-project` (backlog y GitHub Project).
+2. **GitHub Actions, CI:** en cada pull request corre el lint (Ruff, o golangci-lint en admin), los tests unitarios y de integración, y exige cobertura de 85% o más. La cobertura se publica en Codecov.
+3. **GitHub Actions, CD:** en cada merge a main de auth, posts, social, media, admin y api-gateway asume un rol de AWS por OIDC, construye la imagen, la sube a ECR, aplica los manifiestos con kubectl y espera el rollout. backoffice-agent y udesa-mcp se despliegan con un workflow manual desde main, que antes verifica la cuota y los permisos.
 4. **Amazon ECR:** guarda una imagen por servicio, etiquetada con el commit. El cluster descarga la imagen desde ahí.
 
 ## Pendiente
 
-- La observabilidad: métricas, logs y trazas.
-- El almacenamiento en S3.
-- Al 2 de octubre de 2026, auth ya está desplegado en EKS y los demás servicios están en proceso.
+- **Cola de eventos (SNS y SQS):** auth #36, social #13 y #15, posts #27 y #33, y media #14 están aprobados. Falta que se creen el tópico y las cuatro colas en AWS y que el tutor aplique las ServiceAccounts de auth, social y posts (y sume los permisos de SQS al rol de media). Después se mergean en orden: auth #36, social #13, social #15, posts #33 dentro de posts #27, posts #27 y media #14.
+- **notifications-service:** notifications #1 está aprobado; falta su deploy, con sus manifiestos de Kubernetes y su observabilidad. gateway #9, la ruta `/notifications`, se mergea después. Con este servicio serían 9 pods: hay que confirmar la cuota con el tutor.
+- **Bloquear usuario (#33):** social #17 y posts #37 tienen cambios pedidos; social #18, posts #38, mobile #41 y #42 están aprobados. Al final, auth #44 borra el perfil público `GET /auth/users/{id}`, porque social pasa a armar el perfil con la ruta interna de auth.
+- **Post con video (#29):** media #13 (subida directa a S3 con URL firmada), gateway #14 (tope de 1 MB al body) y mobile #35.
+- **Borrado forzado de contenido (#54):** posts #29 y admin #37 tienen cambios pedidos; admin #38 espera a #37.
+- **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. IA-14 (#77), las métricas del agente en Langfuse, sigue abierta.
 
 Las decisiones detrás de este diseño están en los [ADRs](adrs.md).
