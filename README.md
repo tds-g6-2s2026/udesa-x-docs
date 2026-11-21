@@ -17,10 +17,12 @@ La carpeta `entrega-intermedia` guarda los archivos originales de la entrega int
 - `diagrama-bases-de-datos.png` y `.pdf`: modelo de datos.
 - `adrs-udesa-x.pdf`: los 14 ADRs.
 
+La carpeta `entrega-final` guarda la planilla de la entrega final (`historias-y-responsables.xlsx`), con las mismas hojas.
+
 ## Sitio Sphinx (mismo formato que `IT-Ing-UdeSA/it-ing-udesa.github.io`)
 
 - Fuente en `docs/` (MyST Markdown, theme `sphinx_rtd_theme`).
 - Publica en GitHub Pages desde este repo público (`Settings > Pages > Source: GitHub Actions`).
-- Imágenes en `docs/images/`.
+- Imágenes en `docs/images/`. Los diagramas tienen su fuente en SVG al lado del PNG; el PNG se exporta a 3440 px de ancho (`rsvg-convert -w 3440 arquitectura.svg -o arquitectura.png`).
 
 Build local: `pip install -r docs/requirements.txt && sphinx-build -b html docs site`
