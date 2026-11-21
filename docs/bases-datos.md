@@ -141,7 +141,7 @@ Grafo social.
 
 - Quién bloqueó a quién (E.3 H4). Índice `(blocker_id, created_at)` para la lista "Usuarios bloqueados", del más reciente al más viejo.
 - Bloquear borra los follows y las solicitudes entre los dos, en los dos sentidos, en la misma transacción. Desbloquear borra la fila y no restaura los follows.
-- Para el resto de los servicios, un bloqueo vale en los dos sentidos: posts-service pide los ids con `GET /follows/me/blocked` y oculta esos posts. El perfil (`GET /users/{id}/profile`) da 404 solo a quien fue bloqueado.
+- Para el resto de los servicios, un bloqueo vale en los dos sentidos: posts-service pide los ids con `GET /internal/users/{id}/blocked-ids` (interna: incluye a quienes bloquearon a ese usuario, y eso no se puede mostrar) y oculta esos posts. El perfil (`GET /users/{id}/profile`) da 404 solo a quien fue bloqueado.
 
 ## admin-service
 
