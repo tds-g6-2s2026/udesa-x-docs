@@ -131,6 +131,18 @@ Grafo social.
 | followers_count | INTEGER | |
 | following_count | INTEGER | |
 
+### blocks
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| blocker_id | UUID | PK, → users |
+| blocked_id | UUID | PK, IX, → users |
+| created_at | TIMESTAMPTZ | |
+
+- Quién bloqueó a quién (E.3 H4). Índice `(blocker_id, created_at)` para la lista "Usuarios bloqueados", del más reciente al más viejo.
+- Bloquear borra los follows y las solicitudes entre los dos, en los dos sentidos, en la misma transacción. Desbloquear borra la fila y no restaura los follows.
+- Para el resto de los servicios, un bloqueo vale en los dos sentidos: posts-service pide los ids con `GET /follows/me/blocked` y oculta esos posts. El perfil (`GET /users/{id}/profile`) da 404 solo a quien fue bloqueado.
+
 ## admin-service
 
 Administradores del backoffice. Está escrito en Go.
