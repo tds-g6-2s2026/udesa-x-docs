@@ -63,7 +63,7 @@ Desde el cluster se llega por el NAT.
 - **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos y tokens revocados.
 - **Gmail SMTP:** auth manda los mails de verificación y de recuperación de contraseña.
 - **Amazon S3:** pendiente. Es para las imágenes de media-service, que hoy las guarda en disco.
-- **Cola de eventos:** un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, y social lo consume para borrar los follows de la cuenta.
+- **Cola de eventos:** un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted` y `post_replied`. La baja de cuenta llega a cuatro servicios: social borra los follows de la cuenta, posts muestra sus respuestas y los retweets de sus posts como "[Usuario eliminado]", media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
 
 ### 5. Integración y despliegue continuos
 
