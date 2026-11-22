@@ -85,7 +85,7 @@ Desde el cluster se llega por el NAT.
 - **Amazon Bedrock:** modelo del agente y evaluador del MCP, en us-east-2. Los dos pods usan un rol de IAM por IRSA.
 - **Firebase Cloud Messaging:** **pendiente**. notifications-service manda los push con la API HTTP v1 de FCM; la app ya registra el token del celular.
 - **Grafana Cloud:** recibe por OTLP las trazas, métricas y logs de api-gateway, auth, posts, social, media y admin.
-- **Langfuse:** recibe las trazas del agente con el modelo, los tokens, la duración y las herramientas usadas, nunca el texto del chat. Falta activarlo en EKS: lo configura backoffice-agent #12 (ver Pendiente).
+- **Langfuse:** recibe las trazas del agente con el modelo, los tokens, la duración y las herramientas usadas, nunca el texto del chat. En EKS queda listo con backoffice-agent #12 (mergeado el 22/11); falta activarlo (ver Pendiente).
 - **Cola de eventos:** **pendiente**. Un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted`, `post_replied` y `post_quoted`. La baja de cuenta llega a cuatro servicios: social borra los follows y los bloqueos de la cuenta, posts muestra sus respuestas y los retweets de sus posts con su contenido y el autor como "[Usuario eliminado]" (criterio del tutor para el CA.5), media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
 
 ### 5. Integración y despliegue continuos
@@ -101,6 +101,6 @@ Desde el cluster se llega por el NAT.
 - **notifications-service:** notifications #1 está aprobado; falta su deploy, con sus manifiestos de Kubernetes y su observabilidad. gateway #9, la ruta `/notifications`, se mergea después. Con este servicio serían 9 pods: hay que confirmar la cuota con el tutor.
 - **Post con video (#29):** media #13 (subida directa a S3 con URL firmada), gateway #14 (tope de 1 MB al body) y mobile #35.
 - **Borrado forzado de contenido (#54):** posts #29 y admin #37 tienen cambios pedidos; admin #38 espera a #37.
-- **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. IA-14 (#77), las métricas del agente en Langfuse, sigue abierta: backoffice-agent #12 las configura en EKS.
+- **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. Para el agente, backoffice-agent #12 (mergeado el 22/11) deja listo Langfuse en EKS: falta cargar `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr su deploy manual.
 
 Las decisiones detrás de este diseño están en los [ADRs](adrs.md).
