@@ -5,7 +5,7 @@
 :width: 100%
 ```
 
-Estado de `main` al 21 de noviembre de 2026, según los modelos y las migraciones de cada repositorio. Las tablas que todavía están en un pull request abierto figuran al final, en la sección Pendiente.
+Estado de `main` al 22 de noviembre de 2026, según los modelos y las migraciones de cada repositorio. Las tablas que todavía están en un pull request abierto figuran al final, en la sección Pendiente.
 
 Cada servicio tiene su propia base PostgreSQL, y hay un Redis compartido para los datos que vencen. api-gateway, backoffice-agent y udesa-mcp no tienen base.
 
@@ -179,6 +179,18 @@ Grafo social. Las denuncias pasan por social pero se guardan en admin-service.
 | followers_count | INTEGER | |
 | following_count | INTEGER | |
 
+### blocks
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| blocker_id | UUID | PK, → users |
+| blocked_id | UUID | PK, IX, → users |
+| created_at | TIMESTAMPTZ | |
+
+- Quién bloqueó a quién (E.3 H4). Índice `(blocker_id, created_at)` para la lista "Usuarios bloqueados", del más reciente al más viejo.
+- Bloquear borra los follows y las solicitudes entre los dos, en los dos sentidos, en la misma transacción. Desbloquear borra la fila y no restaura los follows.
+- Para el resto de los servicios, un bloqueo vale en los dos sentidos: posts-service pide los ids con `GET /internal/users/{id}/blocked-ids` (interna: incluye a quienes bloquearon a ese usuario, y eso no se puede mostrar) y oculta esos posts. El perfil (`GET /users/{id}/profile`) da 404 solo a quien fue bloqueado.
+
 ## media-service
 
 Metadatos de los archivos. El archivo en sí está en Amazon S3.
@@ -351,16 +363,6 @@ Es una instancia gestionada y compartida. Cada servicio usa su propio prefijo, y
 
 Tablas que todavía están en pull requests abiertos.
 
-### blocks (social-service, social #17)
-
-| Columna | Tipo | Claves |
-|---|---|---|
-| blocker_id | UUID | PK, IX, → users |
-| blocked_id | UUID | PK, IX, → users |
-| created_at | TIMESTAMPTZ | |
-
-- Quién bloqueó a quién (E.3 H4). Índice `(blocker_id, created_at)` para la lista de bloqueados. Bloquear borra los follows entre los dos, en los dos sentidos.
-
 ### deleted_authors (posts-service, posts #33)
 
 | Columna | Tipo | Claves |
@@ -368,7 +370,7 @@ Tablas que todavía están en pull requests abiertos.
 | author_id | UUID | PK, → users |
 | deleted_at | TIMESTAMPTZ | |
 
-- posts la llena con las bajas que le llegan por la cola. Con ella muestra como "[Usuario eliminado]" las respuestas y los retweets de una cuenta borrada (CA.5 de E.1 H4). La migración es la `0010`.
+- posts la llena con las bajas que le llegan por la cola. Con ella, las respuestas y los retweets de una cuenta borrada conservan su contenido y muestran como autor "[Usuario eliminado]", sin handle ni foto (CA.5 de E.1 H4, con el criterio del tutor). La migración es la `0010`.
 
 ### pending_uploads (media-service, media #13)
 
