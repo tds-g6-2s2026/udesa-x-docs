@@ -5,7 +5,7 @@
 :width: 100%
 ```
 
-Estado de `main` al 22 de noviembre de 2026. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR.
+Estado de `main` al 24 de noviembre de 2026. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR.
 
 UdeSA-X está armado con microservicios separados por responsabilidad, y cada uno tiene su propia base. La app habla solo con el gateway. Los servicios se llaman entre sí por HTTP dentro del cluster. El backoffice suma un asistente de IA: un agente y un servidor MCP que usan Amazon Bedrock.
 
@@ -16,8 +16,8 @@ UdeSA-X está armado con microservicios separados por responsabilidad, y cada un
 | Usuario de la app | Persona | Usa la app mobile para publicar, seguir, leer su feed y recibir notificaciones. |
 | Administrador | Persona | Usa el backoffice web para moderar cuentas, ver métricas y consultar al asistente de IA. |
 | Gmail | Sistema externo | Envía los mails de verificación, de recuperación de contraseña y de advertencias de moderación, los avisos a soporte y las alertas de servicios caídos. |
-| AWS | Sistema externo | Aloja la plataforma: CloudFront, el balanceador, el cluster EKS, las imágenes en ECR, los archivos en S3 y el modelo de Amazon Bedrock. La cola de eventos en SNS y SQS está pendiente. |
-| Firebase Cloud Messaging | Sistema externo | Entrega las notificaciones push en Android. **Pendiente:** lo usa notifications-service, que todavía no está desplegado. |
+| AWS | Sistema externo | Aloja la plataforma: CloudFront, el balanceador, el cluster EKS, las imágenes en ECR, los archivos en S3 y el modelo de Amazon Bedrock, y la cola de eventos en SNS y SQS. |
+| Firebase Cloud Messaging | Sistema externo | Entrega las notificaciones push en Android. Lo usa notifications-service. |
 | Grafana Cloud | Sistema externo | Recibe las trazas, métricas y logs de los servicios por OpenTelemetry. |
 | Langfuse | Sistema externo | Recibe las trazas del agente de IA, solo con metadatos. |
 | GitHub | Sistema externo | Guarda el código y corre la integración y el despliegue continuos. |
@@ -36,7 +36,7 @@ UdeSA-X está armado con microservicios separados por responsabilidad, y cada un
 
 ### 3. Cluster EKS
 
-Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un pod por servicio, con estrategia Recreate. Cada servicio es una imagen Docker. La cuota del namespace es de 8 pods y hoy corren 8 servicios.
+Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un pod por servicio, con estrategia Recreate. Cada servicio es una imagen Docker. La cuota del namespace es de 9 pods y 4,5 núcleos de CPU en límites (gateway #9), y hoy corren 9 servicios.
 
 | Servicio | Puerto | Lenguaje | Qué hace | Rutas que recibe del gateway | Datos |
 |---|---|---|---|---|---|
@@ -48,9 +48,9 @@ Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un po
 | admin-service | 8004 | Go | Backoffice: administradores, usuarios, denuncias, auditoría, feedback, métricas, monitor de servicios, sanciones y conversaciones con el asistente. | `/admin`, `/backoffice` | PostgreSQL |
 | backoffice-agent | 8005 | Python | Agente de IA: resuelve las consultas del asistente con Amazon Bedrock y las herramientas del MCP. | Ninguna | Ninguno |
 | udesa-mcp | 8006 | Python | Servidor MCP: herramientas de evidencia, estado de los servicios, evaluación con Bedrock y propuestas de sanción. | Ninguna | Ninguno |
-| notifications-service | — | Python | **Pendiente de deploy** (notifications #1): campanita, tokens de Firebase y push. | `/notifications` (**pendiente:** gateway #9) | PostgreSQL |
+| notifications-service | 8005 | Python | Notificaciones: lee su cola de eventos, guarda la campanita de cada usuario y manda el push por Firebase. Desplegado el 23/11. | `/notifications` | PostgreSQL |
 
-Los puertos son los de cada Service de Kubernetes. Adentro del contenedor, los servicios Python escuchan en el 8000, salvo el agente y el MCP. Las rutas de auth y de admin pasan sin que el gateway verifique el token, porque esos servicios manejan su propia autenticación. El agente y el MCP no tienen rutas públicas y solo aceptan un token interno firmado por admin-service.
+Los puertos son los de cada Service de Kubernetes; backoffice-agent y notifications usan el mismo número en Services distintos. Adentro del contenedor, los servicios Python escuchan en el 8000, salvo el agente y el MCP. Las rutas de auth y de admin pasan sin que el gateway verifique el token, porque esos servicios manejan su propia autenticación. El agente y el MCP no tienen rutas públicas y solo aceptan un token interno firmado por admin-service.
 
 ### Llamadas entre servicios
 
@@ -70,6 +70,7 @@ Todas son pedidos HTTP sincrónicos dentro del cluster. Los números son los del
 | 10 | backoffice-agent → udesa-mcp | Usar las herramientas del asistente. |
 | 11 | udesa-mcp → admin | Leer la evidencia y guardar las propuestas de sanción, siempre a través de admin. |
 | G | gateway → auth | Verificar el token. |
+| — | notifications → auth | Pedir el handle de quien generó el aviso (no figura en el diagrama). |
 | M | admin → todos | Monitor: consulta el `/healthcheck` de cada servicio y avisa por mail si alguno cae. |
 
 Además, el gateway y auth comparten dos datos en Redis: auth publica las revocaciones de sesión que lee el gateway, y el gateway anota los usuarios en línea que auth cuenta para Métricas.
@@ -78,29 +79,29 @@ Además, el gateway y auth comparten dos datos en Redis: auth publica las revoca
 
 Desde el cluster se llega por el NAT.
 
-- **PostgreSQL:** una base por servicio: auth, posts, social, media y admin. notifications tendrá la suya. No hay claves foráneas entre bases.
+- **PostgreSQL:** una base por servicio: auth, posts, social, media, admin y notifications. No hay claves foráneas entre bases.
 - **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos, tokens revocados y el ranking de tendencias, y la lista de usuarios en línea del gateway.
 - **Gmail SMTP:** auth manda los mails de verificación, de recuperación de contraseña y las advertencias de moderación. admin manda los avisos a soporte por cada feedback y las alertas de servicios caídos.
 - **Amazon S3:** guarda los archivos de media-service. El pod accede con IRSA, sin claves en el código, y CloudFront sirve los archivos.
 - **Amazon Bedrock:** modelo del agente y evaluador del MCP, en us-east-2. Los dos pods usan un rol de IAM por IRSA.
-- **Firebase Cloud Messaging:** **pendiente**. notifications-service manda los push con la API HTTP v1 de FCM; la app ya registra el token del celular.
+- **Firebase Cloud Messaging:** notifications-service manda los push con la API HTTP v1 de FCM; la app registra el token del celular.
 - **Grafana Cloud:** recibe por OTLP las trazas, métricas y logs de api-gateway, auth, posts, social, media y admin.
 - **Langfuse:** recibe las trazas del agente con el modelo, los tokens, la duración y las herramientas usadas, nunca el texto del chat. En EKS queda listo con backoffice-agent #12 (mergeado el 22/11); falta activarlo (ver Pendiente).
-- **Cola de eventos:** **pendiente**. Un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted`, `post_replied` y `post_quoted`. La baja de cuenta llega a cuatro servicios: social borra los follows y los bloqueos de la cuenta, posts muestra sus respuestas y los retweets de sus posts con su contenido y el autor como "[Usuario eliminado]" (criterio del tutor para el CA.5), media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
+- **Cola de eventos:** entró el 23/11. Un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted`, `post_replied` y `post_quoted`. La baja de cuenta llega a cuatro servicios: social borra los follows y los bloqueos de la cuenta, posts muestra sus respuestas y los retweets de sus posts con su contenido y el autor como "[Usuario eliminado]" (criterio del tutor para el CA.5), media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
 
 ### 5. Integración y despliegue continuos
 
 1. **GitHub:** un repositorio por servicio (nueve) y otro para la app, más `load-tests` (pruebas de carga), `udesa-x-docs` (esta documentación) y `udesa-x-project` (backlog y GitHub Project).
 2. **GitHub Actions, CI:** en cada pull request corre el lint (Ruff, o golangci-lint en admin), los tests unitarios y de integración, y exige cobertura de 85% o más. La cobertura se publica en Codecov.
-3. **GitHub Actions, CD:** en cada merge a main de auth, posts, social, media, admin y api-gateway asume un rol de AWS por OIDC, construye la imagen, la sube a ECR, aplica los manifiestos con kubectl y espera el rollout. backoffice-agent y udesa-mcp se despliegan con un workflow manual desde main, que antes verifica la cuota y los permisos.
+3. **GitHub Actions, CD:** en cada merge a main de auth, posts, social, media, admin, notifications y api-gateway asume un rol de AWS por OIDC, construye la imagen, la sube a ECR, aplica los manifiestos con kubectl y espera el rollout. backoffice-agent y udesa-mcp se despliegan con un workflow manual desde main, que antes verifica la cuota y los permisos.
 4. **Amazon ECR:** guarda una imagen por servicio, etiquetada con el commit. El cluster descarga la imagen desde ahí.
 
 ## Pendiente
 
-- **Cola de eventos (SNS y SQS):** auth #36, social #13 y #15, posts #27 y #33, y media #14 están aprobados. Falta que se creen el tópico y las cuatro colas en AWS y que el tutor aplique las ServiceAccounts de auth, social y posts (y sume los permisos de SQS al rol de media). Después se mergean en orden: auth #36, social #13, social #15, posts #33 dentro de posts #27, posts #27 y media #14.
-- **notifications-service:** notifications #1 está aprobado; falta su deploy, con sus manifiestos de Kubernetes y su observabilidad. gateway #9, la ruta `/notifications`, se mergea después. Con este servicio serían 9 pods: hay que confirmar la cuota con el tutor.
+- **Probar la cola y las notificaciones en producción:** entraron y se desplegaron el 23/11 (auth #36, social #13 y #15, posts #27 y #33, media #14, notifications #1 y gateway #9). Falta probar de punta a punta una baja de cuenta y los avisos, y el push en un celular Android con una build propia, porque en Expo Go no funciona.
+- **Observabilidad de notifications-service:** todavía no exporta a Grafana Cloud.
 - **Post con video (#29):** media #13 (subida directa a S3 con URL firmada), gateway #14 (tope de 1 MB al body) y mobile #35.
-- **Borrado forzado de contenido (#54):** posts #29 y admin #37 tienen cambios pedidos; admin #38 espera a #37.
+- **Credencial en la limpieza de posts (#54):** el POST interno de posts que vacía un post entró el 23/11 sin pedir credencial; confía en la red.
 - **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. Para el agente, backoffice-agent #12 (mergeado el 22/11) deja listo Langfuse en EKS: falta cargar `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr su deploy manual.
 
 Las decisiones detrás de este diseño están en los [ADRs](adrs.md).

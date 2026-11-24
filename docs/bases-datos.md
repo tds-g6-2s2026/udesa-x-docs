@@ -5,7 +5,7 @@
 :width: 100%
 ```
 
-Estado de `main` al 22 de noviembre de 2026, según los modelos y las migraciones de cada repositorio. Las tablas que todavía están en un pull request abierto figuran al final, en la sección Pendiente.
+Estado de `main` al 24 de noviembre de 2026, según los modelos y las migraciones de cada repositorio. Las tablas que todavía están en un pull request abierto figuran al final, en la sección Pendiente.
 
 Cada servicio tiene su propia base PostgreSQL, y hay un Redis compartido para los datos que vencen. api-gateway, backoffice-agent y udesa-mcp no tienen base.
 
@@ -154,6 +154,15 @@ Contenido, interacciones y feed. Las claves foráneas de las tablas hijas borran
 | created_at | TIMESTAMPTZ | |
 
 - El tag se guarda en minúsculas. Índice `(tag, created_at)`.
+
+### deleted_authors
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| author_id | UUID | PK, → users |
+| deleted_at | TIMESTAMPTZ | |
+
+- posts la llena con las bajas que le llegan por la cola. Con ella, las respuestas y los retweets de una cuenta borrada conservan su contenido y muestran como autor "[Usuario eliminado]", sin handle ni foto (CA.5 de E.1 H4, con el criterio del tutor). Entró el 23/11 con la cola (posts #33, migración `0010`).
 
 ## social-service
 
@@ -333,6 +342,38 @@ Tablas del asistente del backoffice ({doc}`ADR-0015 <adr-0015>`). Las conversaci
 | ai_proposals | Propuesta de sanción del agente. Vence si nadie la confirma. | id, run_id, user_id, request_hash, payload, status (pending, cancelled, expired o confirmed), expires_at |
 | ai_sanction_confirmations | Confirmación de un administrador. Sobrevive a la conversación y a la evidencia. | id, actor_id, user_id, proposal_version, proposal, report_ids, confirmed_at, case_closed |
 
+## notifications-service
+
+Tokens de los celulares y la campanita de cada usuario. Desplegado el 23/11 (notifications #1).
+
+### device_tokens y notifications
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| token | TEXT | PK |
+| user_id | UUID | IX, → users |
+| platform | VARCHAR(16) | |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
+
+- `device_tokens`: el token de Firebase de cada celular. Si otra cuenta inicia sesión en el mismo celular, el token cambia de dueño.
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | IX, → users |
+| type | follow, like, retweet, reply o quote | CK |
+| actor_id | UUID | IX, → users |
+| actor_handle | VARCHAR(32) | |
+| post_id | UUID, puede ser null | → posts |
+| event_key | VARCHAR(128) | UQ |
+| created_at | TIMESTAMPTZ | |
+| read_at | TIMESTAMPTZ, puede ser null | |
+| deleted_at | TIMESTAMPTZ, puede ser null | |
+
+- `notifications`: la campanita de cada usuario. `event_key` es único por hecho, así un evento repetido de la cola no duplica la notificación. Índice `(user_id, created_at, id)` para paginar de a 20.
+- `post_id` es null solo en los follows.
+
 ## Redis
 
 Es una instancia gestionada y compartida. Cada servicio usa su propio prefijo, y todas las claves vencen solas.
@@ -361,16 +402,7 @@ Es una instancia gestionada y compartida. Cada servicio usa su propio prefijo, y
 
 ## Pendiente
 
-Tablas que todavía están en pull requests abiertos.
-
-### deleted_authors (posts-service, posts #33)
-
-| Columna | Tipo | Claves |
-|---|---|---|
-| author_id | UUID | PK, → users |
-| deleted_at | TIMESTAMPTZ | |
-
-- posts la llena con las bajas que le llegan por la cola. Con ella, las respuestas y los retweets de una cuenta borrada conservan su contenido y muestran como autor "[Usuario eliminado]", sin handle ni foto (CA.5 de E.1 H4, con el criterio del tutor). La migración es la `0010`.
+Tablas que todavía están en un pull request abierto.
 
 ### pending_uploads (media-service, media #13)
 
@@ -387,31 +419,3 @@ Tablas que todavía están en pull requests abiertos.
 | created_at | TIMESTAMPTZ | |
 
 - Subidas directas a S3 con URL firmada que todavía no se confirmaron (E.2 H15, videos).
-
-### device_tokens y notifications (notifications-service, notifications #1)
-
-| Columna | Tipo | Claves |
-|---|---|---|
-| token | TEXT | PK |
-| user_id | UUID | IX, → users |
-| platform | VARCHAR(16) | |
-| created_at | TIMESTAMPTZ | |
-| updated_at | TIMESTAMPTZ | |
-
-- `device_tokens`: el token de Firebase de cada celular. Si otra cuenta inicia sesión en el mismo celular, el token cambia de dueño.
-
-| Columna | Tipo | Claves |
-|---|---|---|
-| id | UUID | PK |
-| user_id | UUID | IX, → users |
-| type | follow, like, retweet, reply o quote | CK |
-| actor_id | UUID | IX, → users |
-| actor_handle | VARCHAR(32) | |
-| post_id | UUID, puede ser null | → posts |
-| event_key | VARCHAR(128) | UQ |
-| created_at | TIMESTAMPTZ | |
-| read_at | TIMESTAMPTZ, puede ser null | |
-| deleted_at | TIMESTAMPTZ, puede ser null | |
-
-- `notifications`: la campanita de cada usuario. `event_key` es único por hecho, así un evento repetido de la cola no duplica la notificación. Índice `(user_id, created_at, id)` para paginar de a 20.
-- `post_id` es null solo en los follows.
