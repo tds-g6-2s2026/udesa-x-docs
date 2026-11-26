@@ -41,14 +41,14 @@ Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un po
 | Servicio | Puerto | Lenguaje | Qué hace | Rutas que recibe del gateway | Datos |
 |---|---|---|---|---|---|
 | api-gateway | 8080 | Python, FastAPI | Rutea por la primera palabra de la ruta. Verifica el token con auth y guarda el resultado hasta 5 minutos, pero en cada pedido consulta en Redis si la sesión fue revocada. Agrega `X-User-Id` y anota a cada usuario activo para la vista Métricas. | Todo lo que llega a `/api` | Redis |
-| auth-service | 8000 | Python | Identidad y cuenta: registro, login con refresh token, perfil, fotos, preferencias, onboarding, baja, feedback, sanciones y estadísticas internas. | `/auth` | PostgreSQL y Redis |
-| posts-service | 8001 | Python | Contenido y feed: posts, respuestas, citas, likes, retweets, guardados, hashtags, tendencias y búsqueda. | `/posts` | PostgreSQL y Redis |
-| social-service | 8002 | Python | Grafo social: follows, solicitudes, sugerencias, seguidores y seguidos, y denuncias. | `/follows`, `/follow-requests`, `/users` | PostgreSQL y Redis |
+| auth-service | 8000 | Python | Identidad y cuenta: registro, login con refresh token, perfil, fotos, preferencias, onboarding, invitaciones, baja, feedback, sanciones y estadísticas internas. | `/auth` | PostgreSQL y Redis |
+| posts-service | 8001 | Python | Contenido y feed: posts, respuestas, citas, likes, retweets, guardados, hashtags, tendencias, búsqueda y el feed de cada lista. | `/posts` | PostgreSQL y Redis |
+| social-service | 8002 | Python | Grafo social: follows, solicitudes, sugerencias, seguidores y seguidos, listas personalizadas, el follow de las invitaciones y denuncias. | `/follows`, `/follow-requests`, `/users` | PostgreSQL y Redis |
 | media-service | 8003 | Python | Archivos: imágenes y videos de los posts, fotos de perfil y portadas. Da las URL firmadas para subir directo a S3, valida lo subido y borra lo que no quedó en ningún post. | `/media`, `/files` | PostgreSQL y S3 |
 | admin-service | 8004 | Go | Backoffice: administradores, usuarios, denuncias, auditoría, feedback, métricas, monitor de servicios, sanciones y conversaciones con el asistente. | `/admin`, `/backoffice` | PostgreSQL |
 | backoffice-agent | 8005 | Python | Agente de IA: resuelve las consultas del asistente con Amazon Bedrock y las herramientas del MCP. | Ninguna | Ninguno |
 | udesa-mcp | 8006 | Python | Servidor MCP: herramientas de evidencia, estado de los servicios, evaluación con Bedrock y propuestas de sanción. | Ninguna | Ninguno |
-| notifications-service | 8005 | Python | Notificaciones: lee su cola de eventos, guarda la campanita de cada usuario y manda el push por Firebase. Desplegado el 23/11. | `/notifications` | PostgreSQL |
+| notifications-service | 8005 | Python | Notificaciones: lee su cola de eventos, guarda la campanita de cada usuario y manda el push por Firebase si sus preferencias lo permiten. Desplegado el 23/11. | `/notifications` | PostgreSQL |
 
 Los puertos son los de cada Service de Kubernetes; backoffice-agent y notifications usan el mismo número en Services distintos. Adentro del contenedor, los servicios Python escuchan en el 8000, salvo el agente y el MCP. Las rutas de auth y de admin pasan sin que el gateway verifique el token, porque esos servicios manejan su propia autenticación. El agente y el MCP no tienen rutas públicas y solo aceptan un token interno firmado por admin-service.
 
@@ -59,7 +59,7 @@ Todas son pedidos HTTP sincrónicos dentro del cluster. Los números son los del
 | Número | Llamada | Para qué |
 |---|---|---|
 | 1 | posts → auth | Pedir los datos de los autores, en lote. |
-| 2 | posts → social | Saber a quién sigue el usuario. |
+| 2 | posts → social | Saber a quién sigue el usuario y a quién bloqueó. Para el feed de una lista, pedir sus integrantes con el token de quien mira (`GET /users/me/lists/{id}/member-ids`): si la lista no es suya o no existe, da 404, y si social no responde en 3 s, 503. |
 | 3 | posts → media | Validar que las imágenes o el video de un post sean del autor. |
 | 4 | social → auth | Saber si la cuenta es pública y pedir datos de usuarios en lote. |
 | 5 | social → admin | Entregar las denuncias, con un token de servicio. |
@@ -71,6 +71,7 @@ Todas son pedidos HTTP sincrónicos dentro del cluster. Los números son los del
 | 11 | udesa-mcp → admin | Leer la evidencia y guardar las propuestas de sanción, siempre a través de admin. |
 | G | gateway → auth | Verificar el token. |
 | — | notifications → auth | Pedir el handle de quien generó el aviso (no figura en el diagrama). |
+| — | auth → social | Avisar que una cuenta invitada verificó el email, para que siga a quien la invitó (`POST /internal/referrals`). Va con un JWT de alcance limitado: solo sirve para esa ruta (aud `udesa-social-referrals`) y vence a los 60 s. Si social no responde, auth reintenta cada 30 s (no figura en el diagrama). |
 | M | admin → todos | Monitor: consulta el `/healthcheck` de cada servicio y avisa por mail si alguno cae. |
 
 Además, el gateway y auth comparten dos datos en Redis: auth publica las revocaciones de sesión que lee el gateway, y el gateway anota los usuarios en línea que auth cuenta para Métricas.

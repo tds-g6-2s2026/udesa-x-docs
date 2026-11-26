@@ -22,7 +22,7 @@ Referencias de la columna Claves:
 
 ## auth-service
 
-Identidad, cuenta y sanciones.
+Identidad, cuenta, sanciones e invitaciones.
 
 ### users
 
@@ -94,6 +94,28 @@ Identidad, cuenta y sanciones.
 - Refresh tokens de la app (auth #45 y #46, migración `0012`). Se guarda solo el SHA-256 del token, nunca el token.
 - Cada uso rota el token. Todos los que salen de un mismo login comparten `family_id`: si llega un token ya usado o revocado, se revoca la familia entera. El logout también la revoca.
 - Si cambió el `token_version` de la cuenta (cambio de contraseña, baja o sanción), el refresh deja de servir.
+
+### invite_links
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| code | UUID | PK |
+| inviter_id | UUID | FK a users.id, IX |
+| created_at | TIMESTAMPTZ | |
+
+- Enlaces de invitación (E.3 H9, auth #47, migración `0013`). `POST /auth/invites` crea uno y devuelve el enlace a la página `GET /auth/invite?ref=<code>`, que abre la app con `udesax://register?ref=<code>`.
+- Hasta 10 por cuenta por día UTC; el siguiente da 429 con `Retry-After`. El índice `(inviter_id, created_at)` sirve para contar los del día.
+- El enlace deja de servir si la cuenta que invita no está verificada, no puede iniciar sesión (baja, bloqueo o suspensión) o está en revisión.
+
+### pending_referrals
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| user_id | UUID | PK, FK a users.id |
+| inviter_id | UUID | FK a users.id |
+| next_attempt_at | TIMESTAMPTZ | IX |
+
+- Se crea cuando alguien se registra con `referral_code`. Cuando la cuenta nueva verifica el email, un hilo de auth le avisa a social con `POST /internal/referrals` y borra la fila. Si social no responde, corre `next_attempt_at` 30 segundos y vuelve a intentar.
 
 ## posts-service
 
@@ -228,6 +250,38 @@ Grafo social. Las denuncias pasan por social pero se guardan en admin-service.
 - Quién bloqueó a quién (E.3 H4). Índice `(blocker_id, created_at)` para la lista "Usuarios bloqueados", del más reciente al más viejo.
 - Bloquear borra los follows y las solicitudes entre los dos, en los dos sentidos, en la misma transacción. Desbloquear borra la fila y no restaura los follows.
 - Para el resto de los servicios, un bloqueo vale en los dos sentidos: posts-service pide los ids con `GET /internal/users/{id}/blocked-ids` (interna: incluye a quienes bloquearon a ese usuario, y eso no se puede mostrar) y oculta esos posts. El perfil (`GET /users/{id}/profile`) da 404 solo a quien fue bloqueado.
+
+### custom_lists
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| owner_id | UUID | PK, → users |
+| id | UUID | PK |
+| name | VARCHAR(80) | |
+
+- Listas personalizadas (E.3 H8, social #19, migración `0004_lists`). Son privadas: cada usuario ve y edita solo las suyas, en `/users/me/lists`.
+- La baja de la cuenta borra sus listas.
+
+### custom_list_members
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| owner_id | UUID | PK, FK, IX, → users |
+| list_id | UUID | PK, FK |
+| member_id | UUID | PK, FK, → users |
+
+- Tiene dos claves foráneas compuestas, las dos con borrado en cascada: `(owner_id, list_id)` a `custom_lists` y `(owner_id, member_id)` a `follows` (`follower_id`, `followee_id`). Por eso dejar de seguir, bloquear o dar de baja la cuenta saca solo a esa persona de las listas.
+- Solo se puede agregar a alguien que el dueño sigue; si no, da 409. Una misma persona puede estar en varias listas.
+- Índice `(owner_id, member_id)`. posts-service pide los integrantes con `GET /users/me/lists/{id}/member-ids`, de a 100 por página, para armar el feed de la lista.
+
+### processed_referrals
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| user_id | UUID | PK, → users |
+
+- Invitaciones ya aplicadas (E.3 H9, social #20, migración `0005_referrals`). Cuando auth avisa que una cuenta invitada verificó el email, social hace que siga a quien la invitó y guarda la fila. Si auth reintenta, el follow no se repite, así se respeta un unfollow posterior.
+- Quien invita autoriza el follow: queda activo aunque su cuenta sea protegida. Si hay un bloqueo entre los dos, no se crea.
 
 ## media-service
 
@@ -391,7 +445,7 @@ Tablas del asistente del backoffice ({doc}`ADR-0015 <adr-0015>`). Las conversaci
 
 ## notifications-service
 
-Tokens de los celulares y la campanita de cada usuario. Desplegado el 23/11 (notifications #1).
+Tokens de los celulares, la campanita y las preferencias de push de cada usuario. Desplegado el 23/11 (notifications #1).
 
 ### device_tokens y notifications
 
@@ -420,6 +474,23 @@ Tokens de los celulares y la campanita de cada usuario. Desplegado el 23/11 (not
 
 - `notifications`: la campanita de cada usuario. `event_key` es único por hecho, así un evento repetido de la cola no duplica la notificación. Índice `(user_id, created_at, id)` para paginar de a 20.
 - `post_id` es null solo en los follows.
+
+### push_preferences
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| user_id | UUID | PK, → users |
+| like | BOOLEAN | |
+| retweet | BOOLEAN | |
+| reply | BOOLEAN | |
+| mention | BOOLEAN | |
+| follow | BOOLEAN | |
+| direct_message | BOOLEAN | |
+
+- Un interruptor por tipo de push (E.4 H5, notifications #4, migración `0002`). Sin fila, todo está prendido. `GET /notifications/preferences` las devuelve y `PATCH /notifications/preferences` cambia una con `{kind, enabled}`.
+- Antes de mandar un push, notifications consulta la tabla. La notificación se guarda en la campanita igual. Las citas usan el interruptor de retweets.
+- `mention` y `direct_message` se guardan pero hoy no hacen nada: ningún servicio publica esos eventos.
+- La baja de la cuenta borra la fila.
 
 ## Redis
 

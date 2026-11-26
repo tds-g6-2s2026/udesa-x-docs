@@ -9,8 +9,8 @@ Estado de `main` al 26 de noviembre de 2026. Fuente: las issues del backlog (`ud
 | Puntos | Total del backlog | Hechos | Hechos con la issue cerrada | % hecho |
 |---|---|---|---|---|
 | Obligatorias | 82 | 82 | 75 | 100% |
-| Optativas | 91 | 54 | 33 | 59% |
-| Total | 173 | 136 | 108 | 79% |
+| Optativas | 91 | 60 | 33 | 66% |
+| Total | 173 | 142 | 108 | 82% |
 
 - Para aprobar hacen falta los **82** puntos obligatorios con todos sus criterios de aceptación y **15** optativos por integrante.
 - Los **82** puntos obligatorios están en `main` y desplegados. Los últimos entraron el 23/11 con la cola de eventos: las tres historias de notificaciones (#40, #41 y #42) y los criterios CA.2 y CA.5 de Eliminación de Cuenta (#4). Falta probarlos de punta a punta en producción y cerrar las issues de notificaciones.
@@ -21,13 +21,14 @@ Estado de `main` al 26 de noviembre de 2026. Fuente: las issues del backlog (`ud
 |---|---|---|---|---|
 | Joaquín Szterensus | 41 | 16 | 15 | 0 |
 | Santino Domato | 12 | 8 | 15 | 7 |
-| Tomás Díaz | 13 | 15 | 15 | 0 |
+| Tomás Díaz | 13 | 18 | 15 | 0 |
 | Facundo Vulcano | 16 | 15 | 15 | 0 |
 
 Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, que es la persona asignada en la issue de GitHub. Quién hizo el backend y quién la app figura en la tabla de abajo y en la hoja Historias.
 
 - Onboarding Inicial (#14) y Visualización de Perfil (#28) se asignaron a Joaquín el 25/11.
-- Santino tiene 8 optativos. Su trabajo en el asistente de IA (épica #62, issues IA-01 a IA-14) no tiene puntos en GitHub.
+- Santino tiene 8 optativos a su nombre. Su trabajo en el asistente de IA (épica #62, issues IA-01 a IA-14) no tiene puntos en GitHub.
+- El 26/11 Santino hizo Listas Personalizadas (#37), Preferencias de Notificación (#44) y el backend de Invitar Usuarios Externos (#38). Con la regla de arriba, #44 suma a Tomás, que está asignado, y #37 no suma a nadie porque no tiene a nadie asignado. Si se le asignan esas issues, Santino llega a 14 con #37 y #44, y a 16 cuando entre la app de #38; Tomás queda en 15.
 - Las issues 57 a 60 del backlog son la parte de app de historias que ya figuran (retweet, guardados, seguir y hashtags), por eso no se suman aparte.
 
 ## Historias hechas y en curso
@@ -66,9 +67,12 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 | E.3 | H3 | Listado de Seguidores y Seguidos | Obligatoria | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | social #11 · mobile #26 | #32 |
 | E.3 | H4 | Bloquear Usuario | Obligatoria | Hecha | Tomás Díaz | Tomás Díaz | Tomás Díaz | auth #43, #44 · social #17, #18 · posts #37, #38 · mobile #41, #42 · docs #9 | #33 |
 | E.3 | H5 | Denunciar Usuario | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus (social, admin, auth) | Joaquín Szterensus | social #12 · admin #22 · auth #33 · mobile #27 | #34 |
+| E.3 | H8 | Listas Personalizadas | Optativa | Hecha (falta cerrar la issue) | Sin asignar | Santino Domato (social, posts) | Santino Domato | social #19 · posts #40 · mobile #50 | #37 |
+| E.3 | H9 | Invitar Usuarios Externos | Optativa | En curso (falta la app: mobile #49, con cambios pedidos) | Joaquín Szterensus | Santino Domato (auth, social) | Santino Domato | auth #47 · social #20 · **pendiente** mobile #49 | #38 |
 | E.4 | H1 | Recibir notificaciones de nuevo seguidor | Obligatoria | Hecha (falta probarla en producción y cerrar la issue) | Facundo Vulcano | Facundo Vulcano; deploy: Tomás Díaz | Facundo Vulcano | notifications #1 · social #15 · mobile #32 | #40 |
 | E.4 | H2 | Notificación de interacción | Obligatoria | Hecha (falta probarla en producción y cerrar la issue) | Facundo Vulcano | Facundo Vulcano, Tomás Díaz (citas); deploy: Tomás Díaz | Facundo Vulcano | notifications #1 · posts #27 · mobile #32 | #41 |
 | E.4 | H3 | Centro de Notificaciones In-App | Obligatoria | Hecha (falta probarla en producción y cerrar la issue) | Facundo Vulcano | Facundo Vulcano; deploy: Tomás Díaz | Facundo Vulcano | notifications #1 · gateway #9 · mobile #31 | #42 |
+| E.4 | H5 | Configurar Preferencias de Notificación | Optativa | Hecha (falta cerrar la issue) | Tomás Díaz | Santino Domato | Santino Domato | notifications #4 · mobile #48 | #44 |
 | E.5 | H1 | Creación de Administradores | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus, Santino Domato | Santino Domato | admin #2, #3, #6 | #45 |
 | E.5 | H2 | Inicio de sesión como Administrador | Obligatoria | Hecha | Joaquín Szterensus | Santino Domato, Tomás Díaz | Santino Domato, Tomás Díaz | admin #6, #7, #9 | #46 |
 | E.5 | H3 | Visualización de Métricas | Optativa | Hecha (falta cerrar la issue) | Joaquín Szterensus | Joaquín Szterensus (gateway, auth, posts, admin) | Joaquín Szterensus (portal) | gateway #15 · auth #41 · posts #32 · admin #39, #40 | #47 |
@@ -92,13 +96,10 @@ En el backoffice, la columna App indica quién hizo el portal web.
 | E.2 | H9 | Menciones a Usuarios | Optativa | 3 | Asignada | Tomás Díaz | #23 |
 | E.3 | H6 | Mensajes Directos (DM) | Optativa | 8 | Sin asignar |  | #35 |
 | E.3 | H7 | Usuarios en línea | Optativa | 3 | Sin asignar |  | #36 |
-| E.3 | H8 | Listas Personalizadas | Optativa | 3 | Sin asignar |  | #37 |
-| E.3 | H9 | Invitar Usuarios Externos | Optativa | 2 | Asignada | Joaquín Szterensus | #38 |
 | E.3 | H10 | Silenciar Usuario | Optativa | 5 | Asignada | Tomás Díaz | #39 |
 | E.4 | H4 | Notificación de mención | Optativa | 5 | Asignada | Tomás Díaz | #43 |
-| E.4 | H5 | Configurar Preferencias de Notificación | Optativa | 3 | Asignada | Tomás Díaz | #44 |
 
-Notificación de Mención (#43) y Preferencias de Notificación (#44) dependen de notifications-service.
+Notificación de Mención (#43) depende de Menciones a Usuarios (#23), porque ningún servicio publica todavía un evento de mención, y su CA.2 depende de Silenciar Usuario (#39). notifications-service ya está desplegado y, desde el 26/11, las preferencias de push (#44) tienen el interruptor de menciones.
 
 ## Pendientes y aclaraciones
 
@@ -109,9 +110,12 @@ Notificación de Mención (#43) y Preferencias de Notificación (#44) dependen d
 | E.1 H14 | Onboarding Inicial | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
 | E.2 H13 | Citar Post (Quote Tweet) | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
 | E.2 H15 | Post con Video | Entró el 26/11. La app sube los archivos directo a S3 con una URL firmada, sin pasar por el gateway. Decisión del equipo: solo se aceptan JPG, PNG y MP4, los formatos que piden los CA, así que en iPhone se rechazan las fotos HEIC y los videos MOV. Desde el 26/11, media borra a las 24 h los archivos que no quedaron en ningún post (posts #39 y media #15). Falta cerrar la issue. |
+| E.3 H8 | Listas Personalizadas | Entró el 26/11 (social #19, posts #40 y mobile #50). Solo se puede agregar a una lista a alguien que seguís; dejar de seguirlo, bloquearlo o la baja de la cuenta lo saca solo (CA.3). El feed de una lista trae los posts originales de sus integrantes, sin retweets. La issue no tiene a nadie asignado. Faltan tildar los CA y cerrar la issue. |
+| E.3 H9 | Invitar Usuarios Externos | El backend entró el 26/11 (auth #47 y social #20). Falta la app, en **pendiente** mobile #49: el 26/11 se pidieron cambios porque el código de invitación se pierde si la persona sale de la pantalla de registro (afecta el CA.2), pegar el enlace completo da un error en inglés y, después de cerrar sesión, aparece Registro con el código viejo. Además, el deep link `udesax://` necesita una APK nueva, porque Expo Go no lo abre. |
 | E.4 H1 | Recibir notificaciones de nuevo seguidor | notifications #1 y social #15 entraron y se desplegaron el 23/11. Falta probar el push en un celular Android: en Expo Go no funciona, hace falta una build propia. |
 | E.4 H2 | Notificación de interacción | notifications #1 y posts #27 entraron y se desplegaron el 23/11. Avisa likes, retweets, respuestas y citas. Falta probarla en producción. |
 | E.4 H3 | Centro de Notificaciones In-App | notifications #1 y gateway #9 entraron y se desplegaron el 23/11; la campanita de la app ya tiene su ruta. Falta probarla en producción. |
+| E.4 H5 | Configurar Preferencias de Notificación | Entró el 26/11 (notifications #4 y mobile #48). Los interruptores cortan solo el push: la notificación se guarda igual en la campanita. Las citas usan el interruptor de retweets. Los de menciones y mensajes directos se guardan pero hoy no hacen nada, porque ningún servicio publica esos eventos. La issue está asignada a Tomás; el backend y la app los hizo Santino. Falta cerrar la issue. |
 | E.5 H2 | Inicio de sesión como Administrador | La issue ahora está asignada a Joaquín; en la entrega intermedia figuraba a nombre de Santino, que hizo admin #6. |
 | E.5 H3 | Visualización de Métricas | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
 | E.5 H10 | Borrado Forzado de Contenido | posts #29, admin #37 y admin #38 entraron el 23/11. Desde el 26/11, limpiar un post también borra sus archivos de S3 (posts #39). Queda abierto lo que se pidió en la review: el POST interno de posts que vacía un post no pide credencial y confía en la red. Falta cerrar la issue. |
@@ -135,7 +139,7 @@ Notificación de Mención (#43) y Preferencias de Notificación (#44) dependen d
 | Cobertura visible en cada repositorio | Parcial | Tomás Díaz | Badge de Codecov en el README de auth, posts, social, media, api-gateway, admin y mobile-app. Falta en backoffice-agent, udesa-mcp y notifications-service. |
 | Integración y despliegue continuos con GitHub Actions | Parcial | Joaquín Szterensus; agente y MCP: Santino Domato; notifications: Tomás Díaz | CI en cada pull request de todos los repos. CD al mergear a main en auth, posts, social, media, admin, notifications y api-gateway: rol por OIDC, imagen en ECR, kubectl y espera del rollout. backoffice-agent y udesa-mcp se despliegan con un workflow manual desde main. La app no tiene CD, como permite la cátedra. |
 | Observabilidad: métricas, logs y trazas en Grafana, IA en Langfuse, con acceso del tutor | Parcial | Joaquín Szterensus | OpenTelemetry en todos los servicios salvo notifications. En EKS, api-gateway, auth, posts, social, media y admin mandan trazas, métricas y logs a Grafana Cloud. El agente tiene el exportador a Langfuse, solo con metadatos. Falta confirmar que el agente y el MCP exporten en EKS: sus manifiestos no definen las variables OTEL_* ni LANGFUSE_*. IA-14 (#77): backoffice-agent #12 (mergeado el 22/11) deja listo el envío a Langfuse desde EKS; falta cargar la variable `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr el deploy del agente, que es manual. notifications-service todavía no tiene observabilidad. |
-| Rate limiting en al menos un microservicio | Cumplido | Joaquín Szterensus, Santino Domato, Tomás Díaz, Facundo Vulcano | posts: 30 posts por hora. social: 50 follows por hora y una denuncia por par cada 24 h. auth: bloqueo tras 5 logins fallidos, 3 intentos de cambio de contraseña y 3 de baja; 2 mensajes de feedback por hora. media: 30 subidas de imágenes y 5 de videos cada 10 minutos por usuario. |
+| Rate limiting en al menos un microservicio | Cumplido | Joaquín Szterensus, Santino Domato, Tomás Díaz, Facundo Vulcano | posts: 30 posts por hora. social: 50 follows por hora y una denuncia por par cada 24 h. auth: bloqueo tras 5 logins fallidos, 3 intentos de cambio de contraseña y 3 de baja; 2 mensajes de feedback por hora y 10 invitaciones por día. media: 30 subidas de imágenes y 5 de videos cada 10 minutos por usuario. |
 | Al menos una cola asincrónica entre dos microservicios | Cumplido | Facundo Vulcano (diseño y código), Tomás Díaz (recursos de AWS y deploy) | Un tópico de Amazon SNS y una cola de SQS por consumidor ({doc}`ADR-0016 <adr-0016>`). Entró y se desplegó el 23/11: auth #36, social #13 y #15, posts #27 y #33, media #14 y notifications #1. auth, social y posts publican; social, posts, media y notifications consumen. Desde el 26/11, posts también avisa a media qué archivos usa cada post, con un outbox para no perder avisos (posts #39). Falta probarla de punta a punta en producción. |
 | Buena experiencia de usuario en app y backoffice | Cumplido | Equipo | Sistema de diseño propio, tema claro y oscuro, español e inglés y onboarding para cuentas nuevas. |
 | Al menos una funcionalidad con inteligencia artificial | Cumplido | Santino Domato | Asistente del backoffice ({doc}`ADR-0015 <adr-0015>`): backoffice-agent y udesa-mcp corren en EKS con Amazon Bedrock. Propone sanciones con la evidencia de las denuncias y un administrador las confirma. Desde el 21/11 está activado por completo en producción. |
