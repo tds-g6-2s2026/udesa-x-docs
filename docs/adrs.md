@@ -20,7 +20,7 @@ Los ADR-0001 a ADR-0014 registran decisiones que ya estaban tomadas e implementa
 | {doc}`ADR-0012 <adr-0012>` | Despliegue en el cluster EKS compartido de la cátedra | 2026-10-02 | Aceptada |
 | {doc}`ADR-0013 <adr-0013>` | Testing con dependencias inyectadas, base real y mínimo de cobertura | 2026-09-04 | Aceptada |
 | {doc}`ADR-0014 <adr-0014>` | App mobile con Expo, TanStack Query y Zustand | 2026-08-25 | Aceptada |
-| {doc}`ADR-0015 <adr-0015>` | Agente único de backoffice con Bedrock, MCP y sanciones confirmadas | 2026-11-02 | Propuesta |
+| {doc}`ADR-0015 <adr-0015>` | Agente único de backoffice con Bedrock, MCP y sanciones confirmadas | 2026-11-02 | Aceptada |
 | {doc}`ADR-0016 <adr-0016>` | Cola de eventos con Amazon SNS y SQS | 2026-11-19 | Aceptada |
 | {doc}`ADR-0017 <adr-0017>` | Notificaciones en un servicio propio que lee la cola de eventos y envía push con FCM | 2026-11-12 | Aceptada |
 

@@ -1,6 +1,6 @@
 # Historias y responsables
 
-Estado de `main` al 24 de noviembre de 2026. Fuente: las issues del backlog (`udesa-x-project`) y los pull requests de la organización `tds-g6-2s2026`. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR. Planilla: [historias-y-responsables.xlsx](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-final/historias-y-responsables.xlsx), con las hojas Resumen, Historias y Requisitos técnicos.
+Estado de `main` al 26 de noviembre de 2026. Fuente: las issues del backlog (`udesa-x-project`) y los pull requests de la organización `tds-g6-2s2026`. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR. Planilla: [historias-y-responsables.xlsx](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-final/historias-y-responsables.xlsx), con las hojas Resumen, Historias y Requisitos técnicos.
 
 ## Resumen
 
@@ -9,8 +9,8 @@ Estado de `main` al 24 de noviembre de 2026. Fuente: las issues del backlog (`ud
 | Puntos | Total del backlog | Hechos | Hechos con la issue cerrada | % hecho |
 |---|---|---|---|---|
 | Obligatorias | 82 | 82 | 75 | 100% |
-| Optativas | 91 | 49 | 33 | 54% |
-| Total | 173 | 131 | 108 | 76% |
+| Optativas | 91 | 54 | 33 | 59% |
+| Total | 173 | 136 | 108 | 79% |
 
 - Para aprobar hacen falta los **82** puntos obligatorios con todos sus criterios de aceptación y **15** optativos por integrante.
 - Los **82** puntos obligatorios están en `main` y desplegados. Los últimos entraron el 23/11 con la cola de eventos: las tres historias de notificaciones (#40, #41 y #42) y los criterios CA.2 y CA.5 de Eliminación de Cuenta (#4). Falta probarlos de punta a punta en producción y cerrar las issues de notificaciones.
@@ -19,16 +19,14 @@ Estado de `main` al 24 de noviembre de 2026. Fuente: las issues del backlog (`ud
 
 | Por integrante | Obligatorios hechos | Optativos hechos | Optativos requeridos al final | Optativos que faltan |
 |---|---|---|---|---|
-| Joaquín Szterensus | 38 | 13 | 15 | 2 |
+| Joaquín Szterensus | 41 | 16 | 15 | 0 |
 | Santino Domato | 12 | 8 | 15 | 7 |
-| Tomás Díaz | 13 | 10 | 15 | 5 |
+| Tomás Díaz | 13 | 15 | 15 | 0 |
 | Facundo Vulcano | 16 | 15 | 15 | 0 |
-| Sin asignar en GitHub | 3 | 3 | | |
 
 Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, que es la persona asignada en la issue de GitHub. Quién hizo el backend y quién la app figura en la tabla de abajo y en la hoja Historias.
 
-- **Sin asignar en GitHub:** Onboarding Inicial (#14, optativa) y Visualización de Perfil (#28, obligatoria, cerrada el 22/11). Los PRs son de Joaquín; si se le asignan, pasa a 41 obligatorios y 16 optativos.
-- **En curso:** Tomás tiene 5 optativos (#29): con ellos llega a 15 optativos.
+- Onboarding Inicial (#14) y Visualización de Perfil (#28) se asignaron a Joaquín el 25/11.
 - Santino tiene 8 optativos. Su trabajo en el asistente de IA (épica #62, issues IA-01 a IA-14) no tiene puntos en GitHub.
 - Las issues 57 a 60 del backlog son la parte de app de historias que ya figuran (retweet, guardados, seguir y hashtags), por eso no se suman aparte.
 
@@ -36,8 +34,8 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 
 | Épica | H | Título | Tipo | Estado | Responsable | Backend | App | PRs | Issue |
 |---|---|---|---|---|---|---|---|---|---|
-| E.1 | H1 | Registro de Usuarios | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | auth #1, #3, #14 · mobile #1 | #1 |
-| E.1 | H2 | Inicio de Sesión | Obligatoria | Hecha | Santino Domato | Santino Domato | Joaquín Szterensus | auth #2, #8 | #2 |
+| E.1 | H1 | Registro de Usuarios | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | auth #1, #3, #14 · mobile #1 · **pendiente** mobile #46 (CA.6) | #1 |
+| E.1 | H2 | Inicio de Sesión | Obligatoria | Hecha | Santino Domato | Santino Domato; refresh token: Joaquín Szterensus | Joaquín Szterensus | auth #2, #8 · refresh token: auth #45, #46 · mobile #45 | #2 |
 | E.1 | H3 | Cierre de Sesión | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | auth #9 · mobile #2 | #3 |
 | E.1 | H4 | Eliminación de Cuenta | Obligatoria | Hecha (falta probar la cola en producción) | Facundo Vulcano | Facundo Vulcano, Tomás Díaz | Joaquín Szterensus, Facundo Vulcano, Tomás Díaz | auth #5, #29, #30, #36 · social #13 · posts #33 · media #14 · mobile #24, #44 | #4 |
 | E.1 | H5 | Olvidé Mi Contraseña | Obligatoria | Hecha | Tomás Díaz | Tomás Díaz, Joaquín Szterensus | Joaquín Szterensus | auth #6, #7 · mobile #1 | #5 |
@@ -48,10 +46,10 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 | E.1 | H11 | Enviar Feedback o Reportar Error | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano (auth, admin) | Facundo Vulcano | auth #34 · admin #24 · mobile #28 | #11 |
 | E.1 | H12 | Aceptación de Términos y Política de Privacidad | Obligatoria | Hecha | Facundo Vulcano | Facundo Vulcano | Joaquín Szterensus, Facundo Vulcano | auth #12 · mobile #22 | #12 |
 | E.1 | H13 | Cambiar Contraseña | Optativa | Hecha | Santino Domato | Santino Domato | Joaquín Szterensus | auth #10 | #13 |
-| E.1 | H14 | Onboarding Inicial | Optativa | Hecha (falta asignar y cerrar la issue) | Sin asignar (PRs de Joaquín Szterensus) | Joaquín Szterensus | Joaquín Szterensus | auth #42 · mobile #38, #39, #40 | #14 |
+| E.1 | H14 | Onboarding Inicial | Optativa | Hecha (falta cerrar la issue) | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | auth #42 · mobile #38, #39, #40 | #14 |
 | E.2 | H1 | Crear Post (Tweet) | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | posts #1 | #15 |
 | E.2 | H2 | Feed Principal (Timeline) | Obligatoria | Hecha | Santino Domato | Santino Domato (posts, auth, social) | Santino Domato | posts #12 · auth #18 · social #2 · mobile #8 | #16 |
-| E.2 | H3 | Eliminar Post | Obligatoria | Hecha | Santino Domato | Santino Domato | Santino Domato | posts #3, #9 · mobile #6 | #17 |
+| E.2 | H3 | Eliminar Post | Obligatoria | Hecha | Santino Domato | Santino Domato; adjuntos: Tomás Díaz | Santino Domato | posts #3, #9, #39 · mobile #6 | #17 |
 | E.2 | H4 | Responder a un Post | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | posts #5 · mobile #4 · posts #37 (CA.3) | #18 |
 | E.2 | H5 | Retweet / Repost | Obligatoria | Hecha | Santino Domato | Santino Domato, Facundo Vulcano | Facundo Vulcano, Santino Domato | posts #3, #14, #16 · mobile #9, #13, #25 | #19 |
 | E.2 | H6 | Like a un Post | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | posts #4 · mobile #3 | #20 |
@@ -61,8 +59,8 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 | E.2 | H11 | Trending Topics | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | posts #23 · mobile #23 | #25 |
 | E.2 | H12 | Guardar Posts (Bookmarks) | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | posts #6 · mobile #10, #13 | #26 |
 | E.2 | H13 | Citar Post (Quote Tweet) | Optativa | Hecha (falta cerrar la issue) | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | posts #34, #35 · mobile #36, #37 | #27 |
-| E.2 | H14 | Visualización de Perfil de Usuario | Obligatoria | Hecha (issue cerrada; falta asignarla) | Sin asignar (PRs de Joaquín Szterensus) | Joaquín Szterensus (auth, posts) | Joaquín Szterensus | auth #27 · posts #20 · mobile #20 | #28 |
-| E.2 | H15 | Post con Video | Optativa | En curso | Tomás Díaz | Tomás Díaz | Tomás Díaz | posts #31 · **pendiente** media #13, gateway #14, mobile #35 | #29 |
+| E.2 | H14 | Visualización de Perfil de Usuario | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus (auth, posts) | Joaquín Szterensus | auth #27 · posts #20 · mobile #20 | #28 |
+| E.2 | H15 | Post con Video | Optativa | Hecha (falta cerrar la issue) | Tomás Díaz | Tomás Díaz (media, posts, gateway) | Tomás Díaz | posts #31, #39 · media #13, #15 · gateway #14 · mobile #35 | #29 |
 | E.3 | H1 | Seguir a un Usuario | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus (social, auth) | Tomás Díaz | social #1 · auth #17 · mobile #14, #15 | #30 |
 | E.3 | H2 | Dejar de Seguir a un Usuario | Obligatoria | Hecha | Santino Domato | Santino Domato | Santino Domato | social #9 · mobile #21 | #31 |
 | E.3 | H3 | Listado de Seguidores y Seguidos | Obligatoria | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | social #11 · mobile #26 | #32 |
@@ -80,7 +78,7 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 | E.5 | H7 | Gestión de Denuncias | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus (portal) | admin #23 | #51 |
 | E.5 | H8 | Exportar Datos | Optativa | Hecha | Tomás Díaz | Tomás Díaz | Tomás Díaz (portal) | admin #21 | #52 |
 | E.5 | H9 | Registro de Ultima Conexión | Optativa | Hecha | Tomás Díaz | Tomás Díaz (auth, admin) | Tomás Díaz (portal) | auth #35 · admin #31 | #53 |
-| E.5 | H10 | Borrado Forzado de Contenido | Optativa | Hecha (falta cerrar la issue) | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus (portal) | auth #40 · posts #29 · admin #37, #38 | #54 |
+| E.5 | H10 | Borrado Forzado de Contenido | Optativa | Hecha (falta cerrar la issue) | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus (portal) | auth #40 · posts #29, #39 · admin #37, #38 | #54 |
 | E.5 | H11 | Estado de los Microservicios | Optativa | Hecha | Santino Domato | Santino Domato | Santino Domato (portal) | admin #19 · /healthcheck: auth #32, posts #24, social #10, media #9, gateway #8 | #55 |
 | E.5 | H12 | Gestión de Feedback/Reportes | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano (portal) | admin #25 | #56 |
 
@@ -106,18 +104,17 @@ Notificación de Mención (#43) y Preferencias de Notificación (#44) dependen d
 
 | Historia | Título | Pendiente o aclaración |
 |---|---|---|
-| E.1 H1 | Registro de Usuarios | CA.6: la app no tiene el botón para reenviar el mail de verificación (el endpoint ya existe en auth). |
+| E.1 H1 | Registro de Usuarios | CA.6: el botón para reenviar el mail de verificación está en **pendiente** mobile #46, abierto el 25/11 (el endpoint ya existe en auth). |
 | E.1 H4 | Eliminación de Cuenta | CA.2 (borrar los follows de la cuenta) y CA.5 (en hilos y retweets el contenido queda y el autor pasa a "[Usuario eliminado]", criterio del tutor) entraron con la cola el 23/11: auth #36, social #13, posts #33 y media #14, que además borra la foto de perfil y la portada. La app ya muestra la lápida con el contenido (mobile #31 y #44). Falta probar una baja de punta a punta en producción. |
-| E.1 H14 | Onboarding Inicial | En main desde el 21/11. La issue no tiene responsable en GitHub y sus CA no están tildados; los PRs son de Joaquín. |
+| E.1 H14 | Onboarding Inicial | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
 | E.2 H13 | Citar Post (Quote Tweet) | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
-| E.2 H14 | Visualización de Perfil de Usuario | Todos los CA están tildados, pero la issue sigue abierta y sin responsable en GitHub; los PRs son de Joaquín. |
-| E.2 H15 | Post con Video | **Pendiente:** media #13 y gateway #14 están aprobados con condición; mobile #35 espera una decisión del equipo (con el cambio, en iPhone se rechazan las fotos HEIC). media #13 y mobile #35 se mergean juntos. |
+| E.2 H15 | Post con Video | Entró el 26/11. La app sube los archivos directo a S3 con una URL firmada, sin pasar por el gateway. Decisión del equipo: solo se aceptan JPG, PNG y MP4, los formatos que piden los CA, así que en iPhone se rechazan las fotos HEIC y los videos MOV. Desde el 26/11, media borra a las 24 h los archivos que no quedaron en ningún post (posts #39 y media #15). Falta cerrar la issue. |
 | E.4 H1 | Recibir notificaciones de nuevo seguidor | notifications #1 y social #15 entraron y se desplegaron el 23/11. Falta probar el push en un celular Android: en Expo Go no funciona, hace falta una build propia. |
 | E.4 H2 | Notificación de interacción | notifications #1 y posts #27 entraron y se desplegaron el 23/11. Avisa likes, retweets, respuestas y citas. Falta probarla en producción. |
 | E.4 H3 | Centro de Notificaciones In-App | notifications #1 y gateway #9 entraron y se desplegaron el 23/11; la campanita de la app ya tiene su ruta. Falta probarla en producción. |
 | E.5 H2 | Inicio de sesión como Administrador | La issue ahora está asignada a Joaquín; en la entrega intermedia figuraba a nombre de Santino, que hizo admin #6. |
 | E.5 H3 | Visualización de Métricas | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
-| E.5 H10 | Borrado Forzado de Contenido | posts #29, admin #37 y admin #38 entraron el 23/11. Queda abierto lo que se pidió en la review: el POST interno de posts que vacía un post no pide credencial y confía en la red. Falta cerrar la issue. |
+| E.5 H10 | Borrado Forzado de Contenido | posts #29, admin #37 y admin #38 entraron el 23/11. Desde el 26/11, limpiar un post también borra sus archivos de S3 (posts #39). Queda abierto lo que se pidió en la review: el POST interno de posts que vacía un post no pide credencial y confía en la red. Falta cerrar la issue. |
 
 ## Requisitos técnicos
 
@@ -129,7 +126,7 @@ Notificación de Mención (#43) y Preferencias de Notificación (#44) dependen d
 | Al menos dos tipos de base de datos | Cumplido | Equipo | PostgreSQL, una base por servicio (auth, posts, social, media, admin y notifications), y Redis para datos que vencen. |
 | Backend en más de una tecnología | Cumplido | Joaquín Szterensus, Santino Domato, Tomás Díaz | admin-service está escrito en Go; el resto, en Python con FastAPI. |
 | Desplegada en la nube, cada servicio en Docker | Cumplido | Joaquín Szterensus (manifiestos), cada dueño de servicio | Cada servicio tiene su Dockerfile y sus manifiestos de Kubernetes. Las imágenes están en ECR y corren en el cluster EKS de la cátedra, namespace tds-group-6. |
-| Seguridad según OWASP Top 10 | Parcial | Equipo | Argon2id, JWT firmados y revocables en el acto, bloqueo por intentos, rate limiting, escape de HTML, cookie HttpOnly con anti-CSRF en el backoffice, firma de admin-service para la moderación y credenciales de AWS por IRSA. Falta impedir el secreto JWT por defecto en producción, activar Dependabot y pedir credencial en el POST interno de posts que vacía un post (#54). |
+| Seguridad según OWASP Top 10 | Parcial | Equipo | Argon2id, JWT firmados y revocables en el acto, refresh tokens con rotación y detección de reuso (auth #45 y #46), bloqueo por intentos, rate limiting, escape de HTML, cookie HttpOnly con anti-CSRF en el backoffice, firma de admin-service para la moderación y credenciales de AWS por IRSA. Falta impedir el secreto JWT por defecto en producción, activar Dependabot y pedir credencial en el POST interno de posts que vacía un post (#54). |
 | Metodología ágil y herramientas de seguimiento | Cumplido | Equipo | Sprints semanales, GitHub Project, issues con etiquetas de épica, puntos y servicio, y pull requests con review. |
 | Documentación técnica y funcional | Cumplido | Equipo | README y guía de contribución por repo, 17 ADRs, este sitio y los diagramas de arquitectura y de datos. |
 | Tests unitarios, de integración y de estrés | Parcial | Equipo; estrés: Facundo Vulcano | Unitarios e integración en todos los backends. Estrés: **pendiente** load-tests #1, con Locust contra el gateway y datos en volumen (5.000 usuarios, 100.000 posts). Hasta 30 usuarios a la vez el p95 queda debajo de 1 s; con 100, el sistema colapsa. |
@@ -138,8 +135,8 @@ Notificación de Mención (#43) y Preferencias de Notificación (#44) dependen d
 | Cobertura visible en cada repositorio | Parcial | Tomás Díaz | Badge de Codecov en el README de auth, posts, social, media, api-gateway, admin y mobile-app. Falta en backoffice-agent, udesa-mcp y notifications-service. |
 | Integración y despliegue continuos con GitHub Actions | Parcial | Joaquín Szterensus; agente y MCP: Santino Domato; notifications: Tomás Díaz | CI en cada pull request de todos los repos. CD al mergear a main en auth, posts, social, media, admin, notifications y api-gateway: rol por OIDC, imagen en ECR, kubectl y espera del rollout. backoffice-agent y udesa-mcp se despliegan con un workflow manual desde main. La app no tiene CD, como permite la cátedra. |
 | Observabilidad: métricas, logs y trazas en Grafana, IA en Langfuse, con acceso del tutor | Parcial | Joaquín Szterensus | OpenTelemetry en todos los servicios salvo notifications. En EKS, api-gateway, auth, posts, social, media y admin mandan trazas, métricas y logs a Grafana Cloud. El agente tiene el exportador a Langfuse, solo con metadatos. Falta confirmar que el agente y el MCP exporten en EKS: sus manifiestos no definen las variables OTEL_* ni LANGFUSE_*. IA-14 (#77): backoffice-agent #12 (mergeado el 22/11) deja listo el envío a Langfuse desde EKS; falta cargar la variable `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr el deploy del agente, que es manual. notifications-service todavía no tiene observabilidad. |
-| Rate limiting en al menos un microservicio | Cumplido | Joaquín Szterensus, Santino Domato, Tomás Díaz, Facundo Vulcano | posts: 30 posts por hora. social: 50 follows por hora y una denuncia por par cada 24 h. auth: bloqueo tras 5 logins fallidos, 3 intentos de cambio de contraseña y 3 de baja; 2 mensajes de feedback por hora. |
-| Al menos una cola asincrónica entre dos microservicios | Cumplido | Facundo Vulcano (diseño y código), Tomás Díaz (recursos de AWS y deploy) | Un tópico de Amazon SNS y una cola de SQS por consumidor ({doc}`ADR-0016 <adr-0016>`). Entró y se desplegó el 23/11: auth #36, social #13 y #15, posts #27 y #33, media #14 y notifications #1. auth, social y posts publican; social, posts, media y notifications consumen. Falta probarla de punta a punta en producción. |
+| Rate limiting en al menos un microservicio | Cumplido | Joaquín Szterensus, Santino Domato, Tomás Díaz, Facundo Vulcano | posts: 30 posts por hora. social: 50 follows por hora y una denuncia por par cada 24 h. auth: bloqueo tras 5 logins fallidos, 3 intentos de cambio de contraseña y 3 de baja; 2 mensajes de feedback por hora. media: 30 subidas de imágenes y 5 de videos cada 10 minutos por usuario. |
+| Al menos una cola asincrónica entre dos microservicios | Cumplido | Facundo Vulcano (diseño y código), Tomás Díaz (recursos de AWS y deploy) | Un tópico de Amazon SNS y una cola de SQS por consumidor ({doc}`ADR-0016 <adr-0016>`). Entró y se desplegó el 23/11: auth #36, social #13 y #15, posts #27 y #33, media #14 y notifications #1. auth, social y posts publican; social, posts, media y notifications consumen. Desde el 26/11, posts también avisa a media qué archivos usa cada post, con un outbox para no perder avisos (posts #39). Falta probarla de punta a punta en producción. |
 | Buena experiencia de usuario en app y backoffice | Cumplido | Equipo | Sistema de diseño propio, tema claro y oscuro, español e inglés y onboarding para cuentas nuevas. |
 | Al menos una funcionalidad con inteligencia artificial | Cumplido | Santino Domato | Asistente del backoffice ({doc}`ADR-0015 <adr-0015>`): backoffice-agent y udesa-mcp corren en EKS con Amazon Bedrock. Propone sanciones con la evidencia de las denuncias y un administrador las confirma. Desde el 21/11 está activado por completo en producción. |
 | Smoke tests (recomendados) | Pendiente |  | No hay smoke tests en los pipelines. |

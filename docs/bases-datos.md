@@ -5,7 +5,7 @@
 :width: 100%
 ```
 
-Estado de `main` al 24 de noviembre de 2026, según los modelos y las migraciones de cada repositorio. Las tablas que todavía están en un pull request abierto figuran al final, en la sección Pendiente.
+Estado de `main` al 26 de noviembre de 2026, según los modelos y las migraciones de cada repositorio.
 
 Cada servicio tiene su propia base PostgreSQL, y hay un Redis compartido para los datos que vencen. api-gateway, backoffice-agent y udesa-mcp no tienen base.
 
@@ -76,6 +76,24 @@ Identidad, cuenta y sanciones.
 
 - Cada orden de moderación que llega de admin-service queda guardada con su resultado. El `id` lo manda admin, así un reintento devuelve el mismo resultado sin aplicar la sanción dos veces.
 - `delivery_deadline` solo se usa en las advertencias por mail: es el plazo para confirmar el envío.
+
+### refresh_tokens
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | FK a users.id, IX |
+| family_id | UUID | IX |
+| token_hash | VARCHAR(64) | UQ |
+| token_version | INTEGER | |
+| created_at | TIMESTAMPTZ | |
+| expires_at | TIMESTAMPTZ | |
+| used_at | TIMESTAMPTZ, puede ser null | |
+| revoked_at | TIMESTAMPTZ, puede ser null | |
+
+- Refresh tokens de la app (auth #45 y #46, migración `0012`). Se guarda solo el SHA-256 del token, nunca el token.
+- Cada uso rota el token. Todos los que salen de un mismo login comparten `family_id`: si llega un token ya usado o revocado, se revoca la familia entera. El logout también la revoca.
+- Si cambió el `token_version` de la cuenta (cambio de contraseña, baja o sanción), el refresh deja de servir.
 
 ## posts-service
 
@@ -164,6 +182,17 @@ Contenido, interacciones y feed. Las claves foráneas de las tablas hijas borran
 
 - posts la llena con las bajas que le llegan por la cola. Con ella, las respuestas y los retweets de una cuenta borrada conservan su contenido y muestran como autor "[Usuario eliminado]", sin handle ni foto (CA.5 de E.1 H4, con el criterio del tutor). Entró el 23/11 con la cola (posts #33, migración `0010`).
 
+### outbox_events
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| id | UUID | PK |
+| type | VARCHAR(64) | |
+| payload | JSON | |
+| created_at | TIMESTAMPTZ | IX |
+
+- Outbox de los avisos a media (posts #39, migración `0011`). `post_media_attached` y `post_media_removed` se guardan en la misma transacción que el post, y un proceso los publica en la cola y borra la fila. Así, si la cola falla, el aviso no se pierde.
+
 ## social-service
 
 Grafo social. Las denuncias pasan por social pero se guardan en admin-service.
@@ -214,11 +243,29 @@ Metadatos de los archivos. El archivo en sí está en Amazon S3.
 | storage_key | VARCHAR(255) | UQ |
 | mime_type | VARCHAR(64) | |
 | size_bytes | INTEGER | |
-| created_at | TIMESTAMPTZ | |
+| created_at | TIMESTAMPTZ | IX parcial si `attached_at` es null |
+| attached_at | TIMESTAMPTZ, puede ser null | |
 
-- `context` es el uso del archivo: `post_image`, `avatar` o `cover`. Define el tamaño y los formatos permitidos.
+- `context` es el uso del archivo: `post_image`, `post_video`, `avatar` o `cover`. Define el tamaño y los formatos permitidos.
+- `attached_at` es cuándo el archivo quedó en un post (avisa posts por la cola). Los de post que pasan 24 h sin quedar en ninguno se borran (migración `0003`).
 - `storage_key` es la clave del objeto en S3. Se genera con un UUID, nunca con el nombre original del archivo.
 - `mime_type` sale del contenido del archivo, no de lo que declara el cliente.
+
+### pending_uploads
+
+| Columna | Tipo | Claves |
+|---|---|---|
+| id | UUID | PK |
+| owner_id | UUID | IX, → users |
+| context | VARCHAR(32) | |
+| storage_key | VARCHAR(255) | UQ |
+| mime_type | VARCHAR(64) | |
+| size_bytes | INTEGER | |
+| expires_at | TIMESTAMPTZ | IX |
+| rejected | BOOLEAN | |
+| created_at | TIMESTAMPTZ | |
+
+- Subidas directas a S3 con URL firmada que todavía no se confirmaron (media #13, migración `0002`). La app pide la URL, sube el archivo y avisa; media valida el contenido y lo pasa a `media`. También sirve para limitar las subidas por usuario.
 
 ## admin-service
 
@@ -399,23 +446,3 @@ Es una instancia gestionada y compartida. Cada servicio usa su propio prefijo, y
 
 - Contrato entre auth y el gateway: el gateway lee en cada pedido `auth:revoked-token`, `auth:min-token-version` y `auth:account-lock`, y auth lee `gateway:online-users` para contar los usuarios en línea. Si cambia el formato de una clave, hay que cambiarlo en los dos servicios.
 - `gateway:online-users` es un sorted set: el miembro es el id del usuario y el puntaje, la hora de su último pedido. Cada escritura borra a los que pasaron los 5 minutos.
-
-## Pendiente
-
-Tablas que todavía están en un pull request abierto.
-
-### pending_uploads (media-service, media #13)
-
-| Columna | Tipo | Claves |
-|---|---|---|
-| id | UUID | PK |
-| owner_id | UUID | → users |
-| context | VARCHAR(32) | |
-| storage_key | VARCHAR(255) | UQ |
-| mime_type | VARCHAR(64) | |
-| size_bytes | INTEGER | |
-| expires_at | TIMESTAMPTZ | IX |
-| rejected | BOOLEAN | |
-| created_at | TIMESTAMPTZ | |
-
-- Subidas directas a S3 con URL firmada que todavía no se confirmaron (E.2 H15, videos).

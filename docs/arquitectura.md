@@ -5,9 +5,9 @@
 :width: 100%
 ```
 
-Estado de `main` al 24 de noviembre de 2026. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR.
+Estado de `main` al 26 de noviembre de 2026. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR.
 
-UdeSA-X está armado con microservicios separados por responsabilidad, y cada uno tiene su propia base. La app habla solo con el gateway. Los servicios se llaman entre sí por HTTP dentro del cluster. El backoffice suma un asistente de IA: un agente y un servidor MCP que usan Amazon Bedrock.
+UdeSA-X está armado con microservicios separados por responsabilidad, y cada uno tiene su propia base. La app habla con el gateway, salvo para subir archivos: los sube directo a S3 con una URL firmada que le da media-service. Los servicios se llaman entre sí por HTTP dentro del cluster. El backoffice suma un asistente de IA: un agente y un servidor MCP que usan Amazon Bedrock.
 
 ## Contexto
 
@@ -26,7 +26,7 @@ UdeSA-X está armado con microservicios separados por responsabilidad, y cada un
 
 ### 1. Clientes
 
-- **App mobile:** React Native con Expo y TypeScript. Usa TanStack Query y Zustand, y guarda el token cifrado en SecureStore. Registra el token de Firebase para el push en Android (mobile #32) y tiene la campanita de notificaciones (mobile #31). La app no tiene despliegue continuo.
+- **App mobile:** React Native con Expo y TypeScript. Usa TanStack Query y Zustand, y guarda el token cifrado en SecureStore. Registra el token de Firebase para el push en Android (mobile #32) y tiene la campanita de notificaciones (mobile #31). Renueva la sesión con el refresh token (mobile #45) y sube las fotos y los videos directo a S3 (mobile #35). La app no tiene despliegue continuo.
 - **Backoffice web:** se usa desde el navegador del administrador. El código está en admin-service; se publica como sitio estático en S3 y lo sirve CloudFront. Llama a la API de admin en `/api/admin`.
 
 ### 2. Borde de AWS
@@ -41,10 +41,10 @@ Todo corre en el cluster `tds-cluster`, en el namespace `tds-group-6`. Hay un po
 | Servicio | Puerto | Lenguaje | Qué hace | Rutas que recibe del gateway | Datos |
 |---|---|---|---|---|---|
 | api-gateway | 8080 | Python, FastAPI | Rutea por la primera palabra de la ruta. Verifica el token con auth y guarda el resultado hasta 5 minutos, pero en cada pedido consulta en Redis si la sesión fue revocada. Agrega `X-User-Id` y anota a cada usuario activo para la vista Métricas. | Todo lo que llega a `/api` | Redis |
-| auth-service | 8000 | Python | Identidad y cuenta: registro, login, perfil, fotos, preferencias, onboarding, baja, feedback, sanciones y estadísticas internas. | `/auth` | PostgreSQL y Redis |
+| auth-service | 8000 | Python | Identidad y cuenta: registro, login con refresh token, perfil, fotos, preferencias, onboarding, baja, feedback, sanciones y estadísticas internas. | `/auth` | PostgreSQL y Redis |
 | posts-service | 8001 | Python | Contenido y feed: posts, respuestas, citas, likes, retweets, guardados, hashtags, tendencias y búsqueda. | `/posts` | PostgreSQL y Redis |
 | social-service | 8002 | Python | Grafo social: follows, solicitudes, sugerencias, seguidores y seguidos, y denuncias. | `/follows`, `/follow-requests`, `/users` | PostgreSQL y Redis |
-| media-service | 8003 | Python | Archivos: imágenes de los posts, fotos de perfil y portadas. | `/media`, `/files` | PostgreSQL y S3 |
+| media-service | 8003 | Python | Archivos: imágenes y videos de los posts, fotos de perfil y portadas. Da las URL firmadas para subir directo a S3, valida lo subido y borra lo que no quedó en ningún post. | `/media`, `/files` | PostgreSQL y S3 |
 | admin-service | 8004 | Go | Backoffice: administradores, usuarios, denuncias, auditoría, feedback, métricas, monitor de servicios, sanciones y conversaciones con el asistente. | `/admin`, `/backoffice` | PostgreSQL |
 | backoffice-agent | 8005 | Python | Agente de IA: resuelve las consultas del asistente con Amazon Bedrock y las herramientas del MCP. | Ninguna | Ninguno |
 | udesa-mcp | 8006 | Python | Servidor MCP: herramientas de evidencia, estado de los servicios, evaluación con Bedrock y propuestas de sanción. | Ninguna | Ninguno |
@@ -60,7 +60,7 @@ Todas son pedidos HTTP sincrónicos dentro del cluster. Los números son los del
 |---|---|---|
 | 1 | posts → auth | Pedir los datos de los autores, en lote. |
 | 2 | posts → social | Saber a quién sigue el usuario. |
-| 3 | posts → media | Validar que las imágenes de un post sean del autor. |
+| 3 | posts → media | Validar que las imágenes o el video de un post sean del autor. |
 | 4 | social → auth | Saber si la cuenta es pública y pedir datos de usuarios en lote. |
 | 5 | social → admin | Entregar las denuncias, con un token de servicio. |
 | 6 | auth → media | Validar la foto de perfil o la portada nueva y borrar la anterior. |
@@ -82,12 +82,12 @@ Desde el cluster se llega por el NAT.
 - **PostgreSQL:** una base por servicio: auth, posts, social, media, admin y notifications. No hay claves foráneas entre bases.
 - **Redis gestionado:** guarda datos que vencen solos, como links de verificación, límites por hora, bloqueos, tokens revocados y el ranking de tendencias, y la lista de usuarios en línea del gateway.
 - **Gmail SMTP:** auth manda los mails de verificación, de recuperación de contraseña y las advertencias de moderación. admin manda los avisos a soporte por cada feedback y las alertas de servicios caídos.
-- **Amazon S3:** guarda los archivos de media-service. El pod accede con IRSA, sin claves en el código, y CloudFront sirve los archivos.
+- **Amazon S3:** guarda los archivos de media-service. El pod accede con IRSA, sin claves en el código, y CloudFront sirve los archivos. La app sube cada archivo directo a S3 con una URL firmada que vence a los diez minutos; después media lo valida y lo registra.
 - **Amazon Bedrock:** modelo del agente y evaluador del MCP, en us-east-2. Los dos pods usan un rol de IAM por IRSA.
 - **Firebase Cloud Messaging:** notifications-service manda los push con la API HTTP v1 de FCM; la app registra el token del celular.
 - **Grafana Cloud:** recibe por OTLP las trazas, métricas y logs de api-gateway, auth, posts, social, media y admin.
 - **Langfuse:** recibe las trazas del agente con el modelo, los tokens, la duración y las herramientas usadas, nunca el texto del chat. En EKS queda listo con backoffice-agent #12 (mergeado el 22/11); falta activarlo (ver Pendiente).
-- **Cola de eventos:** entró el 23/11. Un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted`, `post_replied` y `post_quoted`. La baja de cuenta llega a cuatro servicios: social borra los follows y los bloqueos de la cuenta, posts muestra sus respuestas y los retweets de sus posts con su contenido y el autor como "[Usuario eliminado]" (criterio del tutor para el CA.5), media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`).
+- **Cola de eventos:** entró el 23/11. Un tópico de Amazon SNS y una cola de Amazon SQS por cada servicio que consume ({doc}`ADR-0016 <adr-0016>`). auth publica `user_deleted`, social publica `follow_created` y posts publica `post_liked`, `post_retweeted`, `post_replied` y `post_quoted`. La baja de cuenta llega a cuatro servicios: social borra los follows y los bloqueos de la cuenta, posts muestra sus respuestas y los retweets de sus posts con su contenido y el autor como "[Usuario eliminado]" (criterio del tutor para el CA.5), media borra la foto de perfil y la portada, y notifications borra los tokens y las notificaciones de la cuenta. La cola de notifications recibe además los follows y las interacciones, para avisarle a cada usuario ({doc}`ADR-0017 <adr-0017>`). Desde el 26/11, posts también publica `post_media_attached` y `post_media_removed` para que media sepa qué archivos usa cada post y borre los que se sacaron. posts los guarda primero en una tabla outbox, en la misma transacción que el post, y un proceso los publica después, así no se pierde ningún aviso.
 
 ### 5. Integración y despliegue continuos
 
@@ -100,7 +100,6 @@ Desde el cluster se llega por el NAT.
 
 - **Probar la cola y las notificaciones en producción:** entraron y se desplegaron el 23/11 (auth #36, social #13 y #15, posts #27 y #33, media #14, notifications #1 y gateway #9). Falta probar de punta a punta una baja de cuenta y los avisos, y el push en un celular Android con una build propia, porque en Expo Go no funciona.
 - **Observabilidad de notifications-service:** todavía no exporta a Grafana Cloud.
-- **Post con video (#29):** media #13 (subida directa a S3 con URL firmada), gateway #14 (tope de 1 MB al body) y mobile #35.
 - **Credencial en la limpieza de posts (#54):** el POST interno de posts que vacía un post entró el 23/11 sin pedir credencial; confía en la red.
 - **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. Para el agente, backoffice-agent #12 (mergeado el 22/11) deja listo Langfuse en EKS: falta cargar `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr su deploy manual.
 
