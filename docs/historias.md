@@ -1,6 +1,6 @@
 # Historias y responsables
 
-Estado de `main` al 26 de noviembre de 2026. Fuente: las issues del backlog (`udesa-x-project`) y los pull requests de la organización `tds-g6-2s2026`. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR. Planilla: [historias-y-responsables.xlsx](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-final/historias-y-responsables.xlsx), con las hojas Resumen, Historias y Requisitos técnicos.
+Estado de `main` al 27 de noviembre de 2026. Fuente: las issues del backlog (`udesa-x-project`) y los pull requests de la organización `tds-g6-2s2026`. Lo que todavía está en un pull request abierto figura como **pendiente**, con la referencia al PR. Planilla: [historias-y-responsables.xlsx](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-final/historias-y-responsables.xlsx), con las hojas Resumen, Historias y Requisitos técnicos.
 
 ## Resumen
 
@@ -9,8 +9,8 @@ Estado de `main` al 26 de noviembre de 2026. Fuente: las issues del backlog (`ud
 | Puntos | Total del backlog | Hechos | Hechos con la issue cerrada | % hecho |
 |---|---|---|---|---|
 | Obligatorias | 82 | 82 | 75 | 100% |
-| Optativas | 91 | 60 | 33 | 66% |
-| Total | 173 | 142 | 108 | 82% |
+| Optativas | 91 | 68 | 44 | 75% |
+| Total | 173 | 150 | 119 | 87% |
 
 - Para aprobar hacen falta los **82** puntos obligatorios con todos sus criterios de aceptación y **15** optativos por integrante.
 - Los **82** puntos obligatorios están en `main` y desplegados. Los últimos entraron el 23/11 con la cola de eventos: las tres historias de notificaciones (#40, #41 y #42) y los criterios CA.2 y CA.5 de Eliminación de Cuenta (#4). Falta probarlos de punta a punta en producción y cerrar las issues de notificaciones.
@@ -20,15 +20,17 @@ Estado de `main` al 26 de noviembre de 2026. Fuente: las issues del backlog (`ud
 | Por integrante | Obligatorios hechos | Optativos hechos | Optativos requeridos al final | Optativos que faltan |
 |---|---|---|---|---|
 | Joaquín Szterensus | 41 | 16 | 15 | 0 |
-| Santino Domato | 12 | 8 | 15 | 7 |
-| Tomás Díaz | 13 | 18 | 15 | 0 |
+| Santino Domato | 12 | 11 | 15 | 4 |
+| Tomás Díaz | 13 | 23 | 15 | 0 |
 | Facundo Vulcano | 16 | 15 | 15 | 0 |
 
 Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, que es la persona asignada en la issue de GitHub. Quién hizo el backend y quién la app figura en la tabla de abajo y en la hoja Historias.
 
 - Onboarding Inicial (#14) y Visualización de Perfil (#28) se asignaron a Joaquín el 25/11.
-- Santino tiene 8 optativos a su nombre. Su trabajo en el asistente de IA (épica #62, issues IA-01 a IA-14) no tiene puntos en GitHub.
-- El 26/11 Santino hizo Listas Personalizadas (#37), Preferencias de Notificación (#44) y el backend de Invitar Usuarios Externos (#38). Con la regla de arriba, #44 suma a Tomás, que está asignado, y #37 no suma a nadie porque no tiene a nadie asignado. Si se le asignan esas issues, Santino llega a 14 con #37 y #44, y a 16 cuando entre la app de #38; Tomás queda en 15.
+- Santino tiene 11 optativos a su nombre. Su trabajo en el asistente de IA (épica #62, issues IA-01 a IA-14) no tiene puntos en GitHub.
+- El 26/11 Santino hizo Listas Personalizadas (#37) y el backend de Invitar Usuarios Externos (#38). #37 no suma a nadie porque no tiene a nadie asignado. Si se le asigna, Santino llega a 14, y a 16 si también se le asigna #38 cuando entre la app.
+- El 27/11 Santino hizo Menciones a Usuarios (#23), que tiene asignada.
+- Preferencias de Notificación (#44) la hizo primero Santino (notifications #4, mobile #48), pero la revirtió (notifications #5, mobile #51). La terminó Tomás, que está asignado, sobre la misma tabla de preferencias que había quedado en producción.
 - Las issues 57 a 60 del backlog son la parte de app de historias que ya figuran (retweet, guardados, seguir y hashtags), por eso no se suman aparte.
 
 ## Historias hechas y en curso
@@ -56,6 +58,7 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 | E.2 | H6 | Like a un Post | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus | Joaquín Szterensus | posts #4 · mobile #3 | #20 |
 | E.2 | H7 | Post con Imagen | Obligatoria | Hecha | Tomás Díaz | Tomás Díaz | Tomás Díaz | posts #10, #26 · media #1 · mobile #7, #29, #30 | #21 |
 | E.2 | H8 | Hashtags | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | posts #11 · mobile #11 | #22 |
+| E.2 | H9 | Menciones a Usuarios | Optativa | Hecha | Santino Domato | Santino Domato (auth, posts, notifications) | Santino Domato; Guardados: Tomás Díaz | auth #48 · posts #41 · notifications #6 · mobile #52 | #23 |
 | E.2 | H10 | Búsqueda de Posts y Usuarios | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus (auth, posts) | Joaquín Szterensus | auth #26 · posts #21 · mobile #19 | #24 |
 | E.2 | H11 | Trending Topics | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | posts #23 · mobile #23 | #25 |
 | E.2 | H12 | Guardar Posts (Bookmarks) | Optativa | Hecha | Facundo Vulcano | Facundo Vulcano | Facundo Vulcano | posts #6 · mobile #10, #13 | #26 |
@@ -69,10 +72,11 @@ Cómo se cuenta: cada historia suma una sola vez, a nombre de su responsable, qu
 | E.3 | H5 | Denunciar Usuario | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus (social, admin, auth) | Joaquín Szterensus | social #12 · admin #22 · auth #33 · mobile #27 | #34 |
 | E.3 | H8 | Listas Personalizadas | Optativa | Hecha (falta cerrar la issue) | Sin asignar | Santino Domato (social, posts) | Santino Domato | social #19 · posts #40 · mobile #50 | #37 |
 | E.3 | H9 | Invitar Usuarios Externos | Optativa | En curso (falta la app: mobile #49, con cambios pedidos) | Joaquín Szterensus | Santino Domato (auth, social) | Santino Domato | auth #47 · social #20 · **pendiente** mobile #49 | #38 |
+| E.3 | H10 | Silenciar Usuario | Optativa | Hecha | Tomás Díaz | Tomás Díaz (social, posts, notifications) | Tomás Díaz | social #PR-SOCIAL · posts #PR-POSTS · notifications #PR-NOTIF · mobile #PR-MOBILE-39 · docs #PR-DOCS | #39 |
 | E.4 | H1 | Recibir notificaciones de nuevo seguidor | Obligatoria | Hecha (falta probarla en producción y cerrar la issue) | Facundo Vulcano | Facundo Vulcano; deploy: Tomás Díaz | Facundo Vulcano | notifications #1 · social #15 · mobile #32 | #40 |
 | E.4 | H2 | Notificación de interacción | Obligatoria | Hecha (falta probarla en producción y cerrar la issue) | Facundo Vulcano | Facundo Vulcano, Tomás Díaz (citas); deploy: Tomás Díaz | Facundo Vulcano | notifications #1 · posts #27 · mobile #32 | #41 |
 | E.4 | H3 | Centro de Notificaciones In-App | Obligatoria | Hecha (falta probarla en producción y cerrar la issue) | Facundo Vulcano | Facundo Vulcano; deploy: Tomás Díaz | Facundo Vulcano | notifications #1 · gateway #9 · mobile #31 | #42 |
-| E.4 | H5 | Configurar Preferencias de Notificación | Optativa | Hecha (falta cerrar la issue) | Tomás Díaz | Santino Domato | Santino Domato | notifications #4 · mobile #48 | #44 |
+| E.4 | H5 | Configurar Preferencias de Notificación | Optativa | Hecha | Tomás Díaz | Tomás Díaz; primera versión, revertida: Santino Domato | Tomás Díaz; primera versión, revertida: Santino Domato | notifications #PR-NOTIF · mobile #PR-MOBILE-44 · docs #PR-DOCS · revertidos: notifications #4 y #5, mobile #48 y #51 | #44 |
 | E.5 | H1 | Creación de Administradores | Obligatoria | Hecha | Joaquín Szterensus | Joaquín Szterensus, Santino Domato | Santino Domato | admin #2, #3, #6 | #45 |
 | E.5 | H2 | Inicio de sesión como Administrador | Obligatoria | Hecha | Joaquín Szterensus | Santino Domato, Tomás Díaz | Santino Domato, Tomás Díaz | admin #6, #7, #9 | #46 |
 | E.5 | H3 | Visualización de Métricas | Optativa | Hecha (falta cerrar la issue) | Joaquín Szterensus | Joaquín Szterensus (gateway, auth, posts, admin) | Joaquín Szterensus (portal) | gateway #15 · auth #41 · posts #32 · admin #39, #40 | #47 |
@@ -93,13 +97,11 @@ En el backoffice, la columna App indica quién hizo el portal web.
 | Épica | H | Título | Tipo | Puntos | Estado | Responsable | Issue |
 |---|---|---|---|---|---|---|---|
 | E.1 | H9 | Social Login | Optativa | 5 | Sin asignar |  | #9 |
-| E.2 | H9 | Menciones a Usuarios | Optativa | 3 | Asignada | Tomás Díaz | #23 |
 | E.3 | H6 | Mensajes Directos (DM) | Optativa | 8 | Sin asignar |  | #35 |
 | E.3 | H7 | Usuarios en línea | Optativa | 3 | Sin asignar |  | #36 |
-| E.3 | H10 | Silenciar Usuario | Optativa | 5 | Asignada | Tomás Díaz | #39 |
 | E.4 | H4 | Notificación de mención | Optativa | 5 | Asignada | Tomás Díaz | #43 |
 
-Notificación de Mención (#43) depende de Menciones a Usuarios (#23), porque ningún servicio publica todavía un evento de mención, y su CA.2 depende de Silenciar Usuario (#39). notifications-service ya está desplegado y, desde el 26/11, las preferencias de push (#44) tienen el interruptor de menciones.
+Notificación de Mención (#43): desde el 27/11 posts publica `post_mentioned` (#23) y notifications lo guarda en la campanita. Una mención de alguien silenciado (#39) o con el interruptor de Menciones apagado (#44) no manda push.
 
 ## Pendientes y aclaraciones
 
@@ -108,14 +110,17 @@ Notificación de Mención (#43) depende de Menciones a Usuarios (#23), porque ni
 | E.1 H1 | Registro de Usuarios | CA.6: el botón para reenviar el mail de verificación está en **pendiente** mobile #46, abierto el 25/11 (el endpoint ya existe en auth). |
 | E.1 H4 | Eliminación de Cuenta | CA.2 (borrar los follows de la cuenta) y CA.5 (en hilos y retweets el contenido queda y el autor pasa a "[Usuario eliminado]", criterio del tutor) entraron con la cola el 23/11: auth #36, social #13, posts #33 y media #14, que además borra la foto de perfil y la portada. La app ya muestra la lápida con el contenido (mobile #31 y #44). Falta probar una baja de punta a punta en producción. |
 | E.1 H14 | Onboarding Inicial | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
+| E.2 H9 | Menciones a Usuarios | En producción desde el 27/11. Las menciones se resuelven al leer el post: un handle que cambia de dueño pasa a apuntar a la cuenta nueva, y el handle tiene que escribirse con las mismas mayúsculas. La suscripción de `tds-group-6-notifications-events` deja pasar `post_mentioned` desde la noche del 27/11; las menciones publicadas antes no llegaron a notifications. Falta probar una mención de punta a punta en producción. |
 | E.2 H13 | Citar Post (Quote Tweet) | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
 | E.2 H15 | Post con Video | Entró el 26/11. La app sube los archivos directo a S3 con una URL firmada, sin pasar por el gateway. Decisión del equipo: solo se aceptan JPG, PNG y MP4, los formatos que piden los CA, así que en iPhone se rechazan las fotos HEIC y los videos MOV. Desde el 26/11, media borra a las 24 h los archivos que no quedaron en ningún post (posts #39 y media #15). Falta cerrar la issue. |
 | E.3 H8 | Listas Personalizadas | Entró el 26/11 (social #19, posts #40 y mobile #50). Solo se puede agregar a una lista a alguien que seguís; dejar de seguirlo, bloquearlo o la baja de la cuenta lo saca solo (CA.3). El feed de una lista trae los posts originales de sus integrantes, sin retweets. La issue no tiene a nadie asignado. Faltan tildar los CA y cerrar la issue. |
 | E.3 H9 | Invitar Usuarios Externos | El backend entró el 26/11 (auth #47 y social #20). Falta la app, en **pendiente** mobile #49: el 26/11 se pidieron cambios porque el código de invitación se pierde si la persona sale de la pantalla de registro (afecta el CA.2), pegar el enlace completo da un error en inglés y, después de cerrar sesión, aparece Registro con el código viejo. Además, el deep link `udesax://` necesita una APK nueva, porque Expo Go no lo abre. |
+| E.3 H10 | Silenciar Usuario | Silenciar oculta al usuario del feed principal y de "Para vos", y corta el push de su actividad. Su perfil, la búsqueda, los hashtags, el detalle y los feeds de listas lo siguen mostrando, y la campanita también, por decisión del equipo. |
 | E.4 H1 | Recibir notificaciones de nuevo seguidor | notifications #1 y social #15 entraron y se desplegaron el 23/11. Falta probar el push en un celular Android: en Expo Go no funciona, hace falta una build propia. |
 | E.4 H2 | Notificación de interacción | notifications #1 y posts #27 entraron y se desplegaron el 23/11. Avisa likes, retweets, respuestas y citas. Falta probarla en producción. |
 | E.4 H3 | Centro de Notificaciones In-App | notifications #1 y gateway #9 entraron y se desplegaron el 23/11; la campanita de la app ya tiene su ruta. Falta probarla en producción. |
 | E.4 H5 | Configurar Preferencias de Notificación | Entró el 26/11 (notifications #4 y mobile #48). Los interruptores cortan solo el push: la notificación se guarda igual en la campanita. Las citas usan el interruptor de retweets. Los de menciones y mensajes directos se guardan pero hoy no hacen nada, porque ningún servicio publica esos eventos. La issue está asignada a Tomás; el backend y la app los hizo Santino. Falta cerrar la issue. |
+| E.4 H5 | Configurar Preferencias de Notificación | Hay un interruptor por cada tipo que existe: likes, retweets, respuestas, citas, menciones y nuevos seguidores. Mensajes directos no existe, así que CA.1 se da por completo sin ese interruptor. Apagar un tipo corta solo el push: la notificación sigue llegando a la campanita. |
 | E.5 H2 | Inicio de sesión como Administrador | La issue ahora está asignada a Joaquín; en la entrega intermedia figuraba a nombre de Santino, que hizo admin #6. |
 | E.5 H3 | Visualización de Métricas | En main desde el 21/11. Faltan tildar los CA y cerrar la issue. |
 | E.5 H10 | Borrado Forzado de Contenido | posts #29, admin #37 y admin #38 entraron el 23/11. Desde el 26/11, limpiar un post también borra sus archivos de S3 (posts #39). Queda abierto lo que se pidió en la review: el POST interno de posts que vacía un post no pide credencial y confía en la red. Falta cerrar la issue. |
