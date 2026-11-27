@@ -100,8 +100,8 @@ Desde el cluster se llega por el NAT.
 ## Pendiente
 
 - **Probar la cola y las notificaciones en producción:** entraron y se desplegaron el 23/11 (auth #36, social #13 y #15, posts #27 y #33, media #14, notifications #1 y gateway #9). Falta probar de punta a punta una baja de cuenta y los avisos, y el push en un celular Android con una build propia, porque en Expo Go no funciona.
-- **Observabilidad de notifications-service:** todavía no exporta a Grafana Cloud.
+- **Observabilidad de notifications-service:** todavía no exporta a Grafana Cloud. Está en **pendiente** notifications-service #2, abierto.
 - **Credencial en la limpieza de posts (#54):** el POST interno de posts que vacía un post entró el 23/11 sin pedir credencial; confía en la red.
-- **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. Para el agente, backoffice-agent #12 (mergeado el 22/11) deja listo Langfuse en EKS: falta cargar `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr su deploy manual.
+- **Observabilidad del agente y del MCP en EKS:** el código exporta a Grafana Cloud y a Langfuse, pero sus manifiestos no definen las variables `OTEL_*` ni `LANGFUSE_*`. Para el agente, backoffice-agent #12 (mergeado el 22/11) deja listo Langfuse en EKS: falta cargar `LANGFUSE_BASE_URL` y las dos claves en GitHub Actions y correr su deploy manual. Las variables `OTEL_*` de los manifiestos están en **pendiente** backoffice-agent #14 y udesa-mcp #9, abiertos; el deploy de ambos también es manual.
 
 Las decisiones detrás de este diseño están en los [ADRs](adrs.md).
