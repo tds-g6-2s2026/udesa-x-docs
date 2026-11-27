@@ -291,7 +291,7 @@ Grafo social. Las denuncias pasan por social pero se guardan en admin-service.
 | muted_id | UUID | PK, → users |
 | created_at | TIMESTAMPTZ | |
 
-- Quién silenció a quién (E.3 H10, social #PR-SOCIAL, migración `0006_mutes`). Índice `(muter_id, created_at)` para la lista "Usuarios silenciados", del más reciente al más viejo.
+- Quién silenció a quién (E.3 H10, social #21, migración `0006_mutes`). Índice `(muter_id, created_at)` para la lista "Usuarios silenciados", del más reciente al más viejo.
 - A diferencia de un bloqueo, vale en un solo sentido y no toca los follows ni las listas. El silenciado no ve ningún cambio.
 - posts-service pide los ids con `GET /internal/users/{id}/muted-ids` y los saca del feed principal y de "Para vos". El perfil, la búsqueda, los hashtags y los feeds de listas siguen mostrando sus posts. notifications-service pregunta `GET /internal/users/{id}/mutes/{other_id}` antes de cada push.
 - La baja de la cuenta borra sus silenciados, los que hizo y los que le hicieron.
@@ -500,7 +500,7 @@ Tokens de los celulares, la campanita y las preferencias de push de cada usuario
 | mention | BOOLEAN, por defecto true | |
 | follow | BOOLEAN, por defecto true | |
 
-- Un interruptor por tipo de push (E.4 H5, notifications #PR-NOTIF). La tabla la creó la migración `0002`; la `0004` le sumó `quote` y le sacó `direct_message`, porque no hay mensajes directos. Una fila por usuario; sin fila, todo está prendido.
+- Un interruptor por tipo de push (E.4 H5, notifications #7). La tabla la creó la migración `0002`; la `0004` le sumó `quote` y le sacó `direct_message`, porque no hay mensajes directos. Una fila por usuario; sin fila, todo está prendido.
 - `GET /notifications/preferences` devuelve los seis tipos. `PATCH /notifications/preferences` cambia solo los que vienen, por ejemplo `{"mention": false}`; un tipo que no existe da 422.
 - Antes de mandar un push, notifications consulta la tabla y le pregunta a social si quien recibe silenció a quien actuó (E.3 H10 CA.4). Si el tipo está apagado o hay un silencio, sale solo el push: la notificación se guarda igual en la campanita.
 - La baja de la cuenta borra la fila.
