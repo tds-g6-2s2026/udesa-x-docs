@@ -502,7 +502,7 @@ Tokens de los celulares, la campanita y las preferencias de push de cada usuario
 
 - Un interruptor por tipo de push (E.4 H5, notifications #7). La tabla la creó la migración `0002`; la `0004` le sumó `quote` y le sacó `direct_message`, porque no hay mensajes directos. Una fila por usuario; sin fila, todo está prendido.
 - `GET /notifications/preferences` devuelve los seis tipos. `PATCH /notifications/preferences` cambia solo los que vienen, por ejemplo `{"mention": false}`; un tipo que no existe da 422.
-- Antes de mandar un push, notifications consulta la tabla y le pregunta a social si quien recibe silenció a quien actuó (E.3 H10 CA.4). Si el tipo está apagado o hay un silencio, sale solo el push: la notificación se guarda igual en la campanita.
+- Antes de mandar un push, notifications consulta la tabla y le pregunta a social si quien recibe silenció a quien actuó (E.3 H10 CA.4). Si el tipo está apagado o hay un silencio, se omite el push y la notificación queda en la campanita.
 - La baja de la cuenta borra la fila.
 
 ## Redis
