@@ -94,14 +94,13 @@ Desde el cluster se llega por el NAT.
 
 1. **GitHub:** un repositorio por servicio (nueve) y otro para la app, más `load-tests` (pruebas de carga), `udesa-x-docs` (esta documentación) y `udesa-x-project` (backlog y GitHub Project).
 2. **GitHub Actions, CI:** en cada pull request corre el lint (Ruff, o golangci-lint en admin), los tests unitarios y de integración, y exige cobertura de 85% o más. La cobertura se publica en Codecov.
-3. **GitHub Actions, CD:** en cada merge a main de auth, posts, social, media, admin, notifications y api-gateway asume un rol de AWS por OIDC, construye la imagen, la sube a ECR, aplica los manifiestos con kubectl y espera el rollout. backoffice-agent y udesa-mcp se despliegan con un workflow manual desde main, que antes verifica la cuota y los permisos.
+3. **GitHub Actions, CD:** en cada merge a main de auth, posts, social, media, admin, notifications y api-gateway asume un rol de AWS por OIDC, construye la imagen, la sube a ECR, aplica los manifiestos con kubectl y espera el rollout. backoffice-agent y udesa-mcp se despliegan automáticamente después de que pasa la CI del mismo commit de main. Ambos verifican la cuota y los permisos; MCP conserva la configuración de evidencia aplicada en el clúster y el agente espera las ejecuciones aceptadas al apagarse.
    Hay además tres workflows manuales de operación: `seed-demo` en auth carga datos de demo en producción (auth #49), `recover-superadmin` en admin le da acceso de emergencia a un SuperAdmin que perdió su contraseña, y `ai-signing` en admin carga en el cluster la clave privada con la que admin firma los tokens del agente y del MCP, y la pública (JWKS) con la que ellos los verifican.
 4. **Amazon ECR:** guarda una imagen por servicio, etiquetada con el commit. El cluster descarga la imagen desde ahí.
 
 ## Pendiente
 
 - **Observabilidad de notifications-service:** todavía no exporta a Grafana Cloud. Está en **pendiente** notifications-service #2, abierto.
-- **Credencial en la limpieza de posts (#54):** el POST interno de posts que vacía un post entró el 23/11 sin pedir credencial; confía en la red.
 - **Pruebas de carga:** el repositorio `load-tests` tiene las pruebas con Locust en **pendiente** load-tests #1, abierto.
 
 Las decisiones detrás de este diseño están en los [ADRs](adrs.md).
