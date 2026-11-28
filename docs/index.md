@@ -19,12 +19,14 @@ Entrega final:
 - [Diagrama de arquitectura](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/docs/images/arquitectura.png)
 - [Diagrama de bases de datos](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/docs/images/modelo-datos.png)
 
+<!-- intermedia:inicio -->
 Entrega intermedia (2/10/2026):
 
 - [Planilla de historias y responsables](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-intermedia/historias-y-responsables.xlsx)
 - [Diagrama de arquitectura en PDF](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-intermedia/diagrama-arquitectura.pdf)
 - [Diagrama de bases de datos en PDF](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-intermedia/diagrama-bases-de-datos.pdf)
 - [Los 14 ADRs en PDF](https://github.com/tds-g6-2s2026/udesa-x-docs/raw/main/entrega-intermedia/adrs-udesa-x.pdf)
+<!-- intermedia:fin -->
 
 ```{toctree}
 :maxdepth: 1
@@ -35,11 +37,14 @@ arquitectura
 bases-datos
 adrs
 limitaciones
+release-2
 ```
 
+<!-- intermedia:inicio -->
 ```{toctree}
 :maxdepth: 1
 :caption: Entrega intermedia
 
 release-1
 ```
+<!-- intermedia:fin -->
