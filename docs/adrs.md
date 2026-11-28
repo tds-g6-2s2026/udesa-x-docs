@@ -2,7 +2,7 @@
 
 Cada ADR registra una decisión con su estado, fecha, alcance, contexto, decisión, alternativas y consecuencias, en el formato de Michael Nygard. Es el mismo formato de la plantilla [ADR-template_es-ES](https://github.com/pmerson/ADR-template/blob/master/ADR-template_es-ES.md): lo que esa plantilla llama "Justificación" acá está repartido entre "Contexto" y "Alternativas".
 
-Los ADR-0001 a ADR-0014 registran decisiones que ya estaban tomadas e implementadas. Se documentaron el 2 de octubre de 2026 a partir del código, las guías de cada repositorio y los pull requests. Su fecha es la del primer cambio que las puso en práctica. Los ADRs posteriores indican su estado explícitamente; una propuesta no implica que la solución ya esté implementada.
+Los ADR-0001 a ADR-0014 registran decisiones que ya estaban tomadas e implementadas. Se documentaron el 2 de octubre de 2026 a partir del código, las guías de cada repositorio y los pull requests. Su fecha es la del primer cambio que las puso en práctica. Los ADRs posteriores indican su estado explícitamente; una propuesta no implica que la solución ya esté implementada. ADR-0018, ADR-0019 y ADR-0020 también se escribieron después de implementar la decisión, el 27 de noviembre, a partir de sus pull requests.
 
 | Número | Decisión | Fecha | Estado |
 |---|---|---|---|
@@ -23,6 +23,9 @@ Los ADR-0001 a ADR-0014 registran decisiones que ya estaban tomadas e implementa
 | {doc}`ADR-0015 <adr-0015>` | Agente único de backoffice con Bedrock, MCP y sanciones confirmadas | 2026-11-02 | Aceptada |
 | {doc}`ADR-0016 <adr-0016>` | Cola de eventos con Amazon SNS y SQS | 2026-11-19 | Aceptada |
 | {doc}`ADR-0017 <adr-0017>` | Notificaciones en un servicio propio que lee la cola de eventos y envía push con FCM | 2026-11-12 | Aceptada |
+| {doc}`ADR-0018 <adr-0018>` | Observabilidad con OpenTelemetry, directo a Grafana Cloud, y Langfuse para el agente | 2026-11-18 | Aceptada |
+| {doc}`ADR-0019 <adr-0019>` | Archivos subidos directo a S3 con URL firmada, y limpieza por eventos con outbox | 2026-11-26 | Aceptada |
+| {doc}`ADR-0020 <adr-0020>` | Silenciar corta el push, no la campanita | 2026-11-23 | Aceptada |
 
 ```{toctree}
 :maxdepth: 1
@@ -46,4 +49,7 @@ adr-0014
 adr-0015
 adr-0016
 adr-0017
+adr-0018
+adr-0019
+adr-0020
 ```

@@ -5,7 +5,7 @@
 :width: 100%
 ```
 
-Estado de `main` al 26 de noviembre de 2026, según los modelos y las migraciones de cada repositorio.
+Estado al 27 de noviembre de 2026, según los modelos y las migraciones de `main` de cada repositorio, más los PR de Silenciar Usuario (E.3 H10: social #21) y Preferencias de Notificación (E.4 H5: notifications #7).
 
 Cada servicio tiene su propia base PostgreSQL, y hay un Redis compartido para los datos que vencen. api-gateway, backoffice-agent y udesa-mcp no tienen base.
 
@@ -214,6 +214,7 @@ Contenido, interacciones y feed. Las claves foráneas de las tablas hijas borran
 | created_at | TIMESTAMPTZ | IX |
 
 - Outbox de los avisos a media (posts #39, migración `0011`). `post_media_attached` y `post_media_removed` se guardan en la misma transacción que el post, y un proceso los publica en la cola y borra la fila. Así, si la cola falla, el aviso no se pierde.
+- Las menciones usan el mismo outbox (E.2 H9, posts #41): `post_mentioned` lleva el post, quien escribió y la persona mencionada, y notifications-service lo convierte en una notificación de tipo `mention`.
 
 ## social-service
 
@@ -332,7 +333,7 @@ Metadatos de los archivos. El archivo en sí está en Amazon S3.
 | rejected | BOOLEAN | |
 | created_at | TIMESTAMPTZ | |
 
-- Subidas directas a S3 con URL firmada que todavía no se confirmaron (media #13, migración `0002`). La app pide la URL, sube el archivo y avisa; media valida el contenido y lo pasa a `media`. También sirve para limitar las subidas por usuario.
+- Subidas directas a S3 con URL firmada que todavía no se confirmaron (media #13, migración `0002`). La app pide la URL, sube el archivo y avisa; media valida el contenido y lo pasa a `media`. También sirve para limitar las subidas por usuario, con el índice `(owner_id, created_at)` de la migración `0003`.
 
 ## admin-service
 
@@ -486,7 +487,7 @@ Tokens de los celulares, la campanita y las preferencias de push de cada usuario
 | deleted_at | TIMESTAMPTZ, puede ser null | |
 
 - `notifications`: la campanita de cada usuario. `event_key` es único por hecho, así un evento repetido de la cola no duplica la notificación. Índice `(user_id, created_at, id)` para paginar de a 20.
-- `post_id` es null solo en los follows.
+- `post_id` es null solo en los follows. El tipo `mention` se sumó con la migración `0003_mentions` (notifications #6, junto con E.2 H9).
 
 ### push_preferences
 
